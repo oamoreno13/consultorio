@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Consultorio">
+<meta name="theme-color" content="#14233A">
+<meta name="robots" content="noindex">
+<title>Consultorio</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--kb:0px;
+    --tinta:#14233A;--tinta2:#3B4B61;--humo:#6B7686;--humo2:#9AA3B0;--linea:#E4E2DA;--linea2:#EFEDE6;
+    --papel:#F4F2EC;--papel2:#EAE7DF;--blanco:#FFFFFF;--marfil:#FBFAF6;
+    --oro:#C9972B;--oroL:#F6ECD6;--oroT:#7A5A12;--verde:#2E6B64;--verdeL:#DFEBE6;--barro:#9A4030;--barroL:#F5E5E0;
+    --sombra:0 1px 2px rgba(20,35,58,.05),0 10px 28px rgba(20,35,58,.06);
+    --hero:#14233A;--heroTxt:#F4F2EC;--heroMute:#93A0B3;--heroLine:rgba(244,242,236,.12);--heroInset:rgba(255,255,255,.06)}
+  @media (prefers-color-scheme:dark){:root{
+    --tinta:#EDEBE4;--tinta2:#C9CDD4;--humo:#9AA3B0;--humo2:#6B7686;--linea:#2A3648;--linea2:#223042;
+    --papel:#0F1826;--papel2:#1A2536;--blanco:#172233;--marfil:#172233;
+    --oroL:#3A2E14;--oroT:#E9C77A;--verdeL:#1B3331;--barroL:#3A2420;
+    --sombra:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.25);
+    --hero:#1E2D44;--heroTxt:#F4F2EC;--heroMute:#93A0B3;--heroLine:rgba(244,242,236,.12);--heroInset:rgba(255,255,255,.06)}}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden}
+  body{position:fixed;inset:0;width:100%;background:var(--papel);color:var(--tinta);font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.45;
+       -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;overscroll-behavior:none}
+  #app{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  #app main{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+  #v-captura::after,#v-catalogos::after{content:'';display:block;height:300px}   /* espacio fijo: los campos de abajo pueden subir sin que nada brinque */
+  .num{font-variant-numeric:tabular-nums}
+  .serif{font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-.01em}
+  button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:0}
+  input{font-family:inherit}
+  [hidden]{display:none!important}
+
+  /* ---- encabezado ---- */
+  header.top{position:sticky;top:0;z-index:5;background:var(--hero);color:var(--heroTxt);
+    padding:calc(12px + env(safe-area-inset-top)) 18px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .mono{width:40px;height:40px;border-radius:50%;border:1px solid rgba(201,151,43,.7);display:flex;align-items:center;justify-content:center;
+    font-family:'Instrument Serif',serif;font-size:17px;color:var(--oro);letter-spacing:.02em;flex:0 0 auto}
+  .brand .n{font-family:'Instrument Serif',serif;font-size:22px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand .e{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--heroMute);margin-top:4px}
+  .icon-btn{background:var(--heroInset);color:var(--heroTxt);width:40px;height:40px;border-radius:50%;font-size:17px;flex:0 0 auto}
+
+  main{max-width:560px;margin:0 auto;padding:16px 16px 0}
+  .vista{display:none}
+  .vista.activa{display:block;animation:entra .2s ease}
+  @keyframes entra{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.vista.activa{animation:none}}
+
+  /* ---- tarjetas ---- */
+  .card{background:var(--blanco);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:var(--sombra)}
+  .card h3{font-size:10.5px;font-weight:600;color:var(--humo);letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+  .card.dark{background:var(--hero);color:var(--heroTxt)}
+  .card.dark h3{color:var(--heroMute)}
+  .fila{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px solid var(--linea2)}
+  .fila:last-child{border-bottom:0}
+  .fila .l{color:var(--tinta2);font-size:14.5px} .fila .v{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .card.dark .fila{border-color:var(--heroLine)} .card.dark .fila .l{color:#C3CBD6}
+  .pos{color:var(--verde)} .acento{color:var(--oro)}
+  .big{font-family:'Instrument Serif',serif;font-size:48px;line-height:1;letter-spacing:-.01em;margin:4px 0 6px}
+  .sub{font-size:13.5px;color:var(--humo)}
+  .card.dark .sub{color:var(--heroMute)}
+  .util{margin-top:14px;padding:14px 16px;border-radius:12px;background:var(--heroInset);border:1px solid var(--heroLine);display:flex;justify-content:space-between;align-items:center}
+  .util .l{font-size:13px;color:#E8D8B2;letter-spacing:.02em} .util .l small{display:block;color:var(--heroMute);font-size:11.5px;margin-top:2px}
+  .util .v{font-family:'Instrument Serif',serif;font-size:30px;color:var(--oro)}
+  .nota{margin-top:12px;padding:11px 14px;border-radius:12px;font-size:13.5px;font-weight:500;line-height:1.4}
+  .nota.ok{background:var(--verdeL);color:var(--verde)} .nota.aviso{background:var(--oroL);color:var(--oroT)}
+  .nota.gris{background:var(--papel);color:var(--humo)}
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .tile{background:var(--papel);border-radius:12px;padding:12px 12px 10px}
+  .tile .k{font-size:10.5px;color:var(--humo);letter-spacing:.08em;text-transform:uppercase} .tile .v{font-family:'Instrument Serif',serif;font-size:27px;line-height:1.1;margin-top:4px}
+  .bar{height:6px;background:var(--papel2);border-radius:6px;overflow:hidden;position:relative}
+  .bar>i{display:block;height:100%;background:var(--verde);border-radius:6px;transition:width .5s ease}
+  .catbar{margin:11px 0} .catbar .h{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px} .catbar .h b{font-variant-numeric:tabular-nums;font-weight:600}
+  .sem{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;align-items:end;height:96px;margin-top:8px}
+  .sem>div{display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+  .sem i{display:block;width:64%;background:var(--linea);border-radius:5px 5px 2px 2px;min-height:3px}
+  .sem .hoy i{background:var(--oro)}
+  .sem span{font-size:10px;color:var(--humo2);margin-top:6px;white-space:nowrap;letter-spacing:.02em}
+  .mesnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .mesnav button{background:var(--blanco);width:44px;height:44px;border-radius:50%;font-size:18px;box-shadow:var(--sombra);color:var(--tinta2)}
+  .mesnav b{font-family:'Instrument Serif',serif;font-weight:400;font-size:22px;text-transform:capitalize;letter-spacing:-.01em}
+  .saludo{font-family:'Instrument Serif',serif;font-size:26px;line-height:1.15;margin:2px 0 14px;letter-spacing:-.01em}
+  .saludo small{display:block;font-family:'Inter';font-size:12.5px;color:var(--humo);margin-top:4px;letter-spacing:0}
+
+  /* ---- captura ---- */
+  .seg{display:flex;background:var(--papel2);border-radius:14px;padding:4px;margin-bottom:14px}
+  .seg button{flex:1;padding:11px;border-radius:11px;font-weight:600;font-size:14px;color:var(--humo);letter-spacing:.01em}
+  .seg button.on{background:var(--blanco);color:var(--tinta);box-shadow:0 1px 4px rgba(20,35,58,.12)}
+  label.t{display:block;font-size:10.5px;font-weight:600;color:var(--humo);margin:18px 0 8px;letter-spacing:.14em;text-transform:uppercase}
+  label.t span{font-weight:400;text-transform:none;letter-spacing:0;font-size:12px}
+  .montoIn{width:100%;font-family:'Instrument Serif',serif;font-size:52px;border:0;border-bottom:1px solid var(--linea);
+    background:transparent;color:var(--tinta);padding:2px 0 6px;outline:none;border-radius:0;letter-spacing:-.01em}
+  .montoIn::placeholder{color:var(--humo2)}
+  .montoIn:focus{border-color:var(--oro)}
+  .montoIn.auto{color:var(--tinta2)}
+  input.campo{display:block;width:100%;min-width:0;font-size:16px;padding:13px 14px;border:1px solid var(--linea);min-height:50px;
+    border-radius:12px;background:var(--marfil);color:var(--tinta);outline:none;-webkit-appearance:none;appearance:none}
+  input.campo::placeholder{color:var(--humo2)}
+  input.campo:focus{border-color:var(--oro);box-shadow:0 0 0 3px var(--oroL);background:var(--blanco)}
+  input[type=date].campo::-webkit-date-and-time-value{text-align:left}
+  select.campo{display:block;width:100%;font-size:16px;font-weight:500;padding:13px 44px 13px 14px;border:1px solid var(--linea);min-height:50px;
+    border-radius:12px;background:var(--marfil);color:var(--tinta);outline:none;-webkit-appearance:none;appearance:none;line-height:1.3;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7686' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center}
+  select.campo:focus{border-color:var(--oro);box-shadow:0 0 0 3px var(--oroL);background-color:var(--blanco)}
+  select.campo.vacio{color:var(--humo2);font-weight:400}
+  select.campo option{color:#14233A;background:#fff}
+  .catalogo .it{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--linea2);font-size:15px}
+  .catalogo .it:last-child{border-bottom:0}
+  .catalogo .it small{color:var(--humo);font-size:12px;white-space:nowrap}
+  .agregar{display:flex;gap:8px;margin-top:12px} .agregar input{flex:1} .agregar .btn{width:auto;margin-top:0;padding:0 18px;font-size:14px;white-space:nowrap}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--linea);background:var(--marfil);color:var(--tinta);padding:10px 14px;border-radius:999px;
+    font-size:14px;font-weight:500;min-height:44px;transition:all .12s}
+  .chip.on{background:var(--tinta);color:var(--papel);border-color:var(--tinta)}
+  @media (prefers-color-scheme:dark){.chip.on{background:#EDEBE4;color:#14233A;border-color:#EDEBE4}}
+  .chip.mas{color:var(--humo);border-style:dashed;background:transparent}
+  .sug{border:1px solid var(--linea);border-top:0;border-radius:0 0 12px 12px;background:var(--blanco);margin-top:-8px;padding-top:4px;overflow:hidden;box-shadow:var(--sombra)}
+  .sug button{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 14px;border-bottom:1px solid var(--linea2);min-height:50px}
+  .sug button:last-child{border-bottom:0}
+  .sug b{font-weight:600;font-size:15px} .sug span{font-size:12px;color:var(--humo);white-space:nowrap}
+  .sug button.nuevo b{color:var(--verde)}
+  .pacSel{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--oroL);border-radius:12px;padding:12px 14px;margin-top:2px}
+  .pacSel b{font-size:15px} .pacSel span{font-size:12px;color:var(--oroT);display:block;margin-top:2px}
+  .pacSel button{color:var(--oroT);font-weight:600;font-size:13px;padding:6px 8px}
+  .frec{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;margin-right:-18px;padding-right:18px}
+  .frec::-webkit-scrollbar{display:none}
+  .frec button{flex:0 0 auto;text-align:left;border:1px solid var(--linea);background:var(--marfil);border-radius:12px;padding:10px 13px;min-width:124px}
+  .frec b{display:block;font-size:14px;font-weight:600;white-space:nowrap} .frec span{display:block;font-size:11.5px;color:var(--humo);white-space:nowrap;margin-top:2px}
+  .btn{display:block;width:100%;border-radius:14px;padding:16px;font-size:16px;font-weight:600;margin-top:20px;background:var(--tinta);color:var(--papel);transition:opacity .15s;letter-spacing:.01em}
+  @media (prefers-color-scheme:dark){.btn{background:#EDEBE4;color:#14233A}}
+  .btn:disabled{opacity:.5}
+  .btn.sec{background:var(--papel);color:var(--tinta);margin-top:10px;padding:13px;font-size:14px}
+  .btn.borrar{background:var(--barroL);color:var(--barro);margin-top:10px;padding:12px;font-size:14px}
+  .btn.cempa{background:var(--oro);color:#14233A}
+  .plegable{margin-top:18px;border:1px dashed var(--linea);border-radius:12px;padding:10px 14px}
+  .plegable>button{width:100%;text-align:left;font-weight:600;font-size:14px;color:var(--tinta2);min-height:36px}
+  .toggle{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:14px}
+  .sw{width:50px;height:30px;border-radius:999px;background:var(--papel2);position:relative;transition:background .15s}
+  .sw::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s}
+  .sw.on{background:var(--verde)} .sw.on::after{left:23px}
+
+  /* ---- listas ---- */
+  .lista .it{border-bottom:1px solid var(--linea2)} .lista .it:last-child{border-bottom:0}
+  .lista .row{display:flex;align-items:center;gap:12px;padding:12px 0;width:100%;text-align:left;min-height:54px}
+  .lista .row .i{flex:1;min-width:0}
+  .lista .row .i b{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lista .row .i span{font-size:12.5px;color:var(--humo);display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lista .row .m{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;font-size:15px}
+  .lista .row .m small{display:block;font-weight:500;font-size:11px;color:var(--humo);margin-top:2px}
+  .lista .row .flecha{color:var(--humo2);font-size:14px;transition:transform .15s}
+  .lista .it.abierto .flecha{transform:rotate(90deg)}
+  .lista .det{display:none;padding:0 0 16px} .lista .it.abierto .det{display:block}
+  .det .notaTxt{background:var(--papel);border-radius:12px;padding:11px 14px;font-size:14px;margin-bottom:8px;white-space:pre-wrap;word-break:break-word}
+  .det .notaTxt.vacia{color:var(--humo);font-style:italic}
+  .det .fila{padding:6px 0;font-size:13.5px}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--papel2);color:var(--tinta2);display:flex;align-items:center;justify-content:center;
+    font-family:'Instrument Serif',serif;font-size:15px;flex:0 0 auto;letter-spacing:.02em}
+  .pill{display:inline-block;font-size:11px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--papel);color:var(--tinta2);letter-spacing:.02em}
+  .pill.pend{background:var(--oroL);color:var(--oroT)} .pill.ok{background:var(--verdeL);color:var(--verde)}
+  .buscar{position:sticky;top:calc(66px + env(safe-area-inset-top));z-index:3;background:var(--papel);padding:2px 0 10px}
+  .back{display:inline-flex;align-items:center;gap:6px;color:var(--humo);font-weight:600;font-size:14px;padding:6px 0;margin-bottom:8px;min-height:44px}
+  .ficha{display:flex;gap:14px;align-items:flex-start}
+  .ficha .avatar{width:56px;height:56px;font-size:22px;background:var(--hero);color:var(--oro);border:1px solid rgba(201,151,43,.5)}
+  .ficha h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:28px;line-height:1.1;letter-spacing:-.01em}
+  .ficha .meta{font-size:13px;color:var(--humo);margin-top:5px;line-height:1.4}
+  .acciones{display:flex;gap:8px;margin-top:14px} .acciones .btn{margin-top:0;flex:1;padding:13px;font-size:14px}
+  .hint{font-size:12.5px;color:var(--humo);margin-top:10px;line-height:1.45}
+  .vacio{text-align:center;color:var(--humo);padding:20px 0;font-size:14px}
+  .skel{height:14px;background:var(--papel2);border-radius:6px;margin:8px 0}
+  .cargando{opacity:.45;pointer-events:none;transition:opacity .2s}
+  .cobrarBox{background:var(--papel);border-radius:12px;padding:12px;margin-top:8px}
+  .cobrarBox .chips{margin-bottom:10px}
+
+  /* ---- barra inferior ---- */
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--blanco);border-top:1px solid var(--linea2);
+    display:flex;justify-content:space-around;align-items:flex-end;padding:8px 10px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(20,35,58,.06)}
+  nav.tabs.teclado{padding-bottom:10px}
+  nav.tabs button{color:var(--humo);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:5px;padding:4px 6px;min-width:64px;min-height:44px}
+  nav.tabs button svg{width:22px;height:22px}
+  nav.tabs button.on{color:var(--tinta)}
+  nav.tabs .mas{width:58px;height:58px;border-radius:50%;background:var(--tinta);color:var(--papel);margin-top:-30px;box-shadow:0 8px 20px rgba(20,35,58,.3);justify-content:center;padding:0;min-width:0;border:3px solid var(--blanco)}
+  @media (prefers-color-scheme:dark){nav.tabs .mas{background:#EDEBE4;color:#14233A}}
+  nav.tabs .mas.on{color:var(--papel)}
+  nav.tabs .mas svg{width:26px;height:26px}
+  nav.tabs .mas.guardar{background:var(--oro);color:#14233A;box-shadow:0 8px 20px rgba(201,151,43,.45)}
+  nav.tabs .mas.guardar.on{color:#14233A}
+  nav.tabs .mas:disabled{opacity:.6}
+
+  #toast{position:fixed;left:50%;bottom:calc(108px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+    background:var(--hero);color:var(--heroTxt);padding:13px 16px;border-radius:14px;font-size:14px;display:flex;gap:14px;align-items:center;
+    opacity:0;pointer-events:none;transition:all .2s;z-index:10;max-width:92vw;box-shadow:var(--sombra)}
+  #toast.on{opacity:1;transform:translateX(-50%);pointer-events:auto}
+  #toast.err{background:var(--barro)}
+  #toast button{color:var(--oro);font-weight:700;font-size:14px}
+  .modal{position:fixed;inset:0;background:rgba(10,18,30,.5);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+  .modal .caja{background:var(--blanco);width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-height:82vh;overflow:auto}
+  .modal.arriba{align-items:flex-start} .modal.arriba .caja{border-radius:0 0 20px 20px;padding-top:calc(16px + env(safe-area-inset-top));animation:bajaCaja .22s cubic-bezier(.2,.8,.2,1)}
+  .modal .caja{animation:subeCaja .22s cubic-bezier(.2,.8,.2,1)}
+  @keyframes subeCaja{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+  @keyframes bajaCaja{from{transform:translateY(-24px);opacity:.6}to{transform:none;opacity:1}}
+
+  /* con el teclado del teléfono abierto, la barra de abajo se quita para no flotar encima */
+  nav.tabs{transition:transform .2s ease,opacity .2s ease}
+  body.kb nav.tabs{transform:translateY(110%);opacity:0;pointer-events:none}
+
+  /* ---- teclado de montos (propio de la app: no abre el del teléfono, nada se mueve) ---- */
+  input[data-kp]{caret-color:transparent;cursor:pointer;-webkit-user-select:none;user-select:none}
+  input[data-kp].kpOn{border-color:var(--oro)}
+  input.campo[data-kp].kpOn{box-shadow:0 0 0 3px var(--oroL);background:var(--blanco)}
+  #kp{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--papel2);border-top:1px solid var(--linea);
+    padding:10px 10px calc(10px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .24s cubic-bezier(.2,.8,.2,1);
+    box-shadow:0 -10px 30px rgba(20,35,58,.12);visibility:hidden}
+  #kp.on{transform:none;visibility:visible}
+  #kp .kpTop{display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:560px;margin:0 auto 10px;padding:0 4px;min-height:40px}
+  #kp .kpInfo{min-width:0} #kp .kpInfo b{display:block;font-size:10.5px;font-weight:600;color:var(--humo);letter-spacing:.14em;text-transform:uppercase}
+  #kp .kpInfo span{display:block;font-size:13px;color:var(--tinta2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #kp .kpInfo span.pos{color:var(--verde);font-weight:600} #kp .kpInfo span.aviso{color:var(--oroT)}
+  #kp .kpOk{background:var(--tinta);color:var(--papel);border-radius:999px;padding:10px 20px;font-weight:600;font-size:15px;flex:0 0 auto}
+  @media (prefers-color-scheme:dark){#kp .kpOk{background:#EDEBE4;color:#14233A}}
+  #kp .kpGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:560px;margin:0 auto}
+  #kp .kpGrid button{height:54px;border-radius:12px;background:var(--blanco);font-size:25px;font-weight:500;color:var(--tinta);
+    box-shadow:0 1px 0 rgba(20,35,58,.08);font-variant-numeric:tabular-nums;transition:background .08s,transform .08s;touch-action:manipulation}
+  #kp .kpGrid button:active,#kp .kpGrid button.pulso{background:var(--linea);transform:scale(.97)}
+  #kp .kpGrid button.fn{background:transparent;box-shadow:none;font-size:22px;color:var(--tinta2)}
+  #kp .kpRapidos{display:flex;gap:8px;max-width:560px;margin:0 auto 8px;overflow-x:auto;scrollbar-width:none}
+  #kp .kpRapidos::-webkit-scrollbar{display:none}
+  #kp .kpRapidos button{flex:0 0 auto;border:1px solid var(--linea);background:var(--marfil);border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:600;color:var(--tinta2)}
+  /* ---- hoja para escribir: el campo vive arriba, el teclado sale debajo y nada de atrás se mueve ---- */
+  input[data-tx]{cursor:pointer;caret-color:transparent;-webkit-user-select:none;user-select:none}
+  #tx{position:fixed;inset:0;z-index:28;background:var(--papel);display:flex;flex-direction:column;
+    padding:calc(10px + env(safe-area-inset-top)) 16px 0;opacity:0;transform:translateY(-14px);pointer-events:none;visibility:hidden;
+    transition:opacity .2s ease,transform .24s cubic-bezier(.2,.8,.2,1),visibility 0s .24s}
+  #tx.on{opacity:1;transform:none;pointer-events:auto;visibility:visible;transition:opacity .2s ease,transform .24s cubic-bezier(.2,.8,.2,1),visibility 0s}
+  #tx .txTop{display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:560px;width:100%;margin:0 auto;min-height:48px}
+  #tx .txTop b{font-family:'Instrument Serif',serif;font-weight:400;font-size:22px;letter-spacing:-.01em;text-align:center;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #tx .txNo{color:var(--humo);font-weight:600;font-size:15px;padding:10px 4px;min-width:74px;text-align:left}
+  #tx .txOk{background:var(--tinta);color:var(--papel);border-radius:999px;padding:10px 20px;font-weight:600;font-size:15px;min-width:74px}
+  @media (prefers-color-scheme:dark){#tx .txOk{background:#EDEBE4;color:#14233A}}
+  #tx .txCampo{max-width:560px;width:100%;margin:14px auto 0}
+  #txIn{width:100%;font-family:'Instrument Serif',serif;font-size:32px;line-height:1.2;border:0;border-bottom:1.5px solid var(--oro);background:transparent;
+    color:var(--tinta);padding:6px 0 10px;outline:none;border-radius:0;letter-spacing:-.01em;-webkit-appearance:none;appearance:none}
+  #txIn::placeholder{color:var(--humo2)}
+  #tx .txHint{font-size:12.5px;color:var(--humo);margin-top:8px;min-height:18px}
+  #tx .txLista{max-width:560px;width:100%;margin:10px auto 0;overflow-y:auto;flex:1;padding-bottom:40vh;-webkit-overflow-scrolling:touch}
+  #tx .txLista h5{font-size:10.5px;font-weight:600;color:var(--humo);letter-spacing:.14em;text-transform:uppercase;margin:10px 0 4px}
+  #tx .txLista button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;padding:13px 2px;border-bottom:1px solid var(--linea2);min-height:54px}
+  #tx .txLista button b{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #tx .txLista button span{font-size:12.5px;color:var(--humo);white-space:nowrap}
+  #tx .txLista button.nuevo b{color:var(--verde)}
+
+  /* ---- teclado de letras propio: el del iPhone empuja el marco de Google; este no mueve nada ---- */
+  #tk{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--papel2);border-top:1px solid var(--linea);
+    padding:8px 3px calc(6px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .22s cubic-bezier(.2,.8,.2,1);
+    visibility:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+  #tk.on{transform:none;visibility:visible}
+  #tk .tkFila{display:flex;justify-content:center;gap:5px;margin:0 auto 9px;max-width:620px}
+  #tk .tkFila:last-child{margin-bottom:0}
+  #tk button{flex:1 1 0;min-width:0;height:44px;border-radius:7px;background:var(--blanco);color:var(--tinta);font-size:21px;font-weight:400;
+    box-shadow:0 1px 0 rgba(20,35,58,.18);padding:0;touch-action:manipulation;font-family:-apple-system,system-ui,'Inter',sans-serif}
+  #tk button.fn{background:var(--linea);font-size:15px;font-weight:500;flex-grow:1.35}
+  #tk button.fn.on{background:var(--blanco);color:var(--oro)}
+  #tk button.esp{flex-grow:5;font-size:15px;color:var(--tinta2)}
+  #tk button.ok{flex-grow:2;background:var(--tinta);color:var(--papel);font-size:15px;font-weight:600}
+  @media (prefers-color-scheme:dark){#tk button.ok{background:#EDEBE4;color:#14233A} #tk button{box-shadow:0 1px 0 rgba(0,0,0,.5)}}
+  #tk button.pulso{background:var(--linea)}
+  #tk .medio{padding:0 4%}
+  #tk.tel .tkFila button{height:50px;font-size:24px} #tk.tel button.fn{flex-grow:1;font-size:22px}
+  #tkBurbuja{position:fixed;z-index:31;pointer-events:none;min-width:44px;height:54px;padding:0 6px;border-radius:9px;background:var(--blanco);color:var(--tinta);
+    font-size:30px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(20,35,58,.25);opacity:0;transform:translateY(6px);transition:opacity .06s}
+  #tkBurbuja.on{opacity:1;transform:none}
+  #tx .txExtra{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  #tx .txNativo{font-size:12.5px;font-weight:600;color:var(--humo);padding:8px 0;white-space:nowrap}
+  body.tkOn #tx .txLista{padding-bottom:300px}
+  body.tkOn nav.tabs{transform:translateY(110%);opacity:0;pointer-events:none}
+
+  /* ---- hoja de opciones: reemplaza la rueda del iPhone en los menús ---- */
+  select.campo{cursor:pointer}
+  #op{position:fixed;inset:0;z-index:26;visibility:hidden;pointer-events:none}
+  #op.on{visibility:visible;pointer-events:auto}
+  #op .opFondo{position:absolute;inset:0;background:rgba(10,18,30,.45);opacity:0;transition:opacity .2s ease}
+  #op.on .opFondo{opacity:1}
+  #op .opCaja{position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--papel2);border-radius:20px 20px 0 0;
+    padding:8px 12px calc(12px + env(safe-area-inset-bottom));max-height:72vh;display:flex;flex-direction:column;
+    transform:translateY(105%);transition:transform .26s cubic-bezier(.2,.8,.2,1);box-shadow:0 -10px 30px rgba(20,35,58,.14)}
+  #op.on .opCaja{transform:none}
+  #op .opAsa{width:38px;height:5px;border-radius:5px;background:var(--linea);margin:2px auto 8px}
+  #op .opTop{display:flex;align-items:center;justify-content:space-between;padding:0 6px 8px}
+  #op .opTop b{font-size:10.5px;font-weight:600;color:var(--humo);letter-spacing:.14em;text-transform:uppercase}
+  #op .opTop button{color:var(--humo);font-weight:600;font-size:14px;padding:6px 4px}
+  #op .opLista{overflow-y:auto;background:var(--blanco);border-radius:14px;-webkit-overflow-scrolling:touch}
+  #op .opLista button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;padding:15px 16px;font-size:16px;
+    border-bottom:1px solid var(--linea2);min-height:54px;transition:background .08s}
+  #op .opLista button:last-child{border-bottom:0}
+  #op .opLista button:active{background:var(--papel)}
+  #op .opLista button.on{font-weight:600}
+  #op .opLista button.on::after{content:'✓';color:var(--oro);font-weight:700}
+  #op .opLista button.agregar{color:var(--verde);font-weight:600}
+
+  /* campo que falta al guardar */
+  .falta{animation:falta .42s ease;border-color:var(--barro)!important;box-shadow:0 0 0 3px var(--barroL)!important}
+  @keyframes falta{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+  .libre{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:10px;padding:0 4px;font-size:13px;color:var(--heroMute)}
+  .libre b{font-family:'Instrument Serif',serif;font-weight:400;font-size:22px;color:var(--heroTxt)}
+  .sat .monto{font-family:'Instrument Serif',serif;font-size:40px;line-height:1;margin:2px 0 6px}
+  .sat .rango{margin:12px 0 4px} .sat .rango .bar>i{background:var(--oro)}
+  .sat .rango .h{display:flex;justify-content:space-between;font-size:12px;color:var(--humo);margin-top:6px}
+  .sat .cambiar{color:var(--humo);font-weight:600;font-size:13px;padding:8px 0 0}
+  .queda{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;font-size:13px;color:var(--humo)}
+  .queda b{font-size:15px;color:var(--verde);font-variant-numeric:tabular-nums}  .modal h4{font-family:'Instrument Serif',serif;font-weight:400;font-size:22px;margin-bottom:10px;letter-spacing:-.01em}
+</style>
+</head>
+<body>
+<div id="app">
+<header class="top">
+  <div class="brand"><div class="mono" aria-hidden="true">·</div><div><div class="n">Mi consultorio</div><div class="e">Consultorio</div></div></div>
+  <div style="display:flex;gap:8px"><button class="icon-btn" id="btnCat" aria-label="Catálogos"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button><button class="icon-btn" id="btnRef" aria-label="Actualizar">↻</button></div>
+</header>
+
+<main>
+  <section class="vista" id="v-inicio">
+    <div class="mesnav"><button id="mesAnt" aria-label="Mes anterior">‹</button><b id="mesLbl">—</b><button id="mesSig" aria-label="Mes siguiente">›</button></div>
+    <div id="inicio"><div class="card"><div class="skel"></div><div class="skel" style="width:60%"></div></div></div>
+  </section>
+
+  <section class="vista" id="v-pacientes">
+    <div class="buscar"><input class="campo" id="pBuscar" placeholder="Buscar paciente…" autocomplete="off"></div>
+    <div id="pLista" class="card lista"></div>
+  </section>
+
+  <section class="vista" id="v-ficha">
+    <button class="back" id="fBack">‹ Pacientes</button>
+    <div id="ficha"></div>
+  </section>
+
+  <section class="vista" id="v-captura">
+    <div class="seg"><button id="segCobro" class="on">Cobro</button><button id="segGasto">Gasto</button></div>
+
+    <div class="card" id="fCobro">
+      <label class="t" style="margin-top:0">Paciente</label>
+      <input class="campo" id="cNombre" placeholder="¿A quién atendiste?" autocomplete="off" readonly data-tx="Paciente">
+      <div class="sug" id="cSug" hidden></div>
+      <div class="pacSel" id="cPacSel" hidden><div><b id="cPacNom"></b><span id="cPacInfo"></span></div><button id="cPacQuitar">Cambiar</button></div>
+      <input class="campo" id="cTel" inputmode="tel" placeholder="Teléfono (opcional, para WhatsApp)" autocomplete="off" style="margin-top:8px" readonly data-tx="Teléfono" hidden>
+
+      <label class="t">Consultorio</label><select class="campo" id="cCons"></select>
+      <label class="t">Tratamiento</label><select class="campo" id="cTrat"></select>
+
+      <label class="t">Monto <span id="cMontoHint"></span></label>
+      <input class="montoIn num" id="cMonto" data-kp="monto" readonly inputmode="none" placeholder="$0" autocomplete="off" aria-label="Monto del cobro">
+      <div class="queda" id="cQueda" hidden><span id="cQuedaTxt"></span><b id="cQuedaV"></b></div>
+
+      <label class="t">¿Cómo pagó?</label><div class="chips" id="cMet"></div>
+
+      <div class="plegable">
+        <button id="cFisBtn">Factura y quién cobró</button>
+        <div id="cFisBox" hidden>
+          <label class="t">¿Quién recibió el dinero?</label><div class="chips" id="cQuien"></div>
+          <p class="hint" id="cParteHint"></p>
+          <label class="t">Factura</label><div class="chips" id="cFact"></div>
+        </div>
+      </div>
+
+      <div class="plegable">
+        <button id="cEspBtn">+ Especialista</button>
+        <div id="cEspBox" hidden>
+          <label class="t">Quién</label><select class="campo" id="cEsp"></select>
+          <label class="t">Su parte</label>
+          <input class="campo num" id="cSuCobro" data-kp="monto" readonly inputmode="none" placeholder="$0" autocomplete="off" aria-label="Parte del especialista">
+          <div class="toggle"><span>Ya le pagué</span><button class="sw" id="cLePague" aria-pressed="false" aria-label="Ya le pagué"></button></div>
+        </div>
+      </div>
+
+      <label class="t">Fecha</label>
+      <div class="chips" id="cFechaChips"></div>
+      <input class="campo" type="date" id="cFecha" style="margin-top:8px" hidden>
+
+      <label class="t">Nota de cobro <span>(opcional, sin datos clínicos)</span></label>
+      <input class="campo" id="cNota" placeholder="Pagó en dólares, lo cubre un familiar…" autocomplete="off" readonly data-tx="Nota del cobro">
+      <button class="btn" id="cGuardar">Guardar cobro</button>
+    </div>
+
+    <div class="card" id="fGasto" hidden>
+      <input class="montoIn num" id="gMonto" data-kp="monto" readonly inputmode="none" placeholder="$0" autocomplete="off" aria-label="Monto del gasto">
+      <div id="gFijosWrap"><label class="t">Fijos · un toque y listo</label><div class="frec" id="gFijos"></div></div>
+      <label class="t">Categoría</label><select class="campo" id="gCat"></select>
+      <label class="t">Proveedor <span>(opcional)</span></label>
+      <input class="campo" id="gProv" placeholder="Leoz, Office Depot…" autocomplete="off" readonly data-tx="Proveedor"><datalist id="gProvList"></datalist>
+      <label class="t">Cómo se pagó</label><div class="chips" id="gMet"></div>
+      <label class="t">¿Tiene factura (CFDI)?</label><div class="chips" id="gCfdi"></div>
+      <div class="nota aviso" id="gAviso" hidden></div>
+      <label class="t">Nota <span>(opcional)</span></label>
+      <input class="campo" id="gNota" placeholder="guantes, renta de noviembre…" autocomplete="off" readonly data-tx="Nota del gasto">
+      <label class="t">Fecha</label>
+      <div class="chips" id="gFechaChips"></div>
+      <input class="campo" type="date" id="gFecha" style="margin-top:8px" hidden>
+      <button class="btn" id="gGuardar">Guardar gasto</button>
+    </div>
+  </section>
+
+  <section class="vista" id="v-pendientes">
+    <div id="pendientes"><div class="card"><div class="skel"></div><div class="skel" style="width:60%"></div></div></div>
+  </section>
+
+  <section class="vista" id="v-catalogos">
+    <button class="back" id="katBack">‹ Volver</button>
+    <div class="saludo">Catálogos<small>Lo que aparece en los menús al capturar. Agrega aquí lo nuevo; para cambiar o quitar un nombre, edítalo en la hoja Catálogos.</small></div>
+    <div id="catalogos"></div>
+    <button class="btn sec" id="btnHoja">Abrir mi archivo en Google Sheets</button>
+    <p class="hint" style="text-align:center;margin:18px 0 0">Versión <span id="verApp">—</span></p>
+  </section>
+</main>
+</div>
+
+<nav class="tabs">
+  <button data-v="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
+  <button data-v="pacientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Pacientes</button>
+  <button data-v="captura" class="mas" aria-label="Nuevo cobro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button data-v="pendientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Pendientes</button>
+</nav>
+
+<div id="toast"><span id="toastTxt"></span><button id="toastBtn" hidden>Deshacer</button></div>
+<div id="modal" hidden></div>
+<div id="tx" aria-hidden="true">
+  <div class="txTop"><button class="txNo" id="txNo">Cancelar</button><b id="txLbl"></b><button class="txOk" id="txOk">Listo</button></div>
+  <div class="txCampo"><input id="txIn" autocomplete="off" enterkeyhint="done"><div class="txExtra"><div class="txHint" id="txHint"></div><button class="txNativo" id="txNativo" hidden>Teclado del iPhone · dictar</button></div></div>
+  <div class="txLista" id="txLista"></div>
+</div>
+<div id="op" aria-hidden="true"><div class="opFondo"></div><div class="opCaja" role="dialog"><div class="opAsa"></div>
+  <div class="opTop"><b id="opLbl"></b><button id="opNo">Cerrar</button></div><div class="opLista" id="opLista"></div></div></div>
+<div id="tk" aria-hidden="true"></div><div id="tkBurbuja"></div>
+<div id="kp" aria-hidden="true">
+  <div class="kpTop"><div class="kpInfo"><b id="kpLbl">Monto</b><span id="kpAyuda"></span></div><button class="kpOk" id="kpOk">Listo</button></div>
+  <div class="kpRapidos" id="kpRapidos" hidden></div>
+  <div class="kpGrid">
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+    <button data-k="." class="fn">.</button><button data-k="0">0</button><button data-k="del" class="fn" aria-label="Borrar">⌫</button>
+  </div>
+</div>
+
+<script>
+/* ======================= utilidades ======================= */
+const $ = s => document.querySelector(s);
+const mx = n => (n < 0 ? '−$' : '$') + Math.abs(Math.round(n || 0)).toLocaleString('es-MX');
+const pc = (n, d = 0) => ((n || 0) * 100).toFixed(d) + '%';
+const hoy = () => new Date().toLocaleDateString('en-CA');
+const ayer = () => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toLocaleDateString('en-CA'); };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const numDe = s => parseFloat(String(s).replace(/[^0-9.\-]/g, '')) || 0;
+const clave = s => String(s ?? '').trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ');
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const fCorta = iso => { if (!iso) return '—'; const [, m, d] = iso.split('-'); return +d + ' ' + MESES[+m - 1].slice(0, 3); };
+const fLarga = iso => { if (!iso) return '—'; const [y, m, d] = iso.split('-'); return +d + ' de ' + MESES[+m - 1] + ' de ' + y; };
+const plural = (n, s, p) => n + ' ' + (n === 1 ? s : p);
+const iniciales = n => String(n || '').trim().split(/\s+/).slice(0, 2).map(x => x[0] || '').join('').toUpperCase() || '·';
+const guardaLocal = (k, v) => { try { localStorage.setItem('cons.' + k, v); } catch (e) {} };
+const leeLocal = (k, def) => { try { return localStorage.getItem('cons.' + k) || def; } catch (e) { return def; } };
+
+/* ======================= conexión con Consultorio API =======================
+   La app vive fuera de Google (GitHub Pages) y le pide los datos a un Apps Script que solo
+   responde si la llamada trae la clave. La clave llega en el link (#k=…) y se queda en este teléfono. */
+const API = 'https://script.google.com/macros/s/AKfycbwwx45Q0Gjq9yKGklJnuLhpEay3AUB6DonpMt60skPIUmoDgv6JD7eIOqUaxSwTfyQm/exec';
+const claveApi = () => { try { return localStorage.getItem('cons.k') || ''; } catch (e) { return ''; } };
+(function () {
+  const m = location.hash.match(/k=([A-Za-z0-9]+)/);
+  if (m) { try { localStorage.setItem('cons.k', m[1]); } catch (e) {} history.replaceState(null, '', location.pathname + location.search); }
+})();
+function pedirClave(msg) {
+  if (document.getElementById('llave')) return;
+  const d = document.createElement('div');
+  d.id = 'llave'; d.className = 'modal arriba';
+  d.innerHTML = `<div class="caja"><h4>Falta tu link de acceso</h4><p class="hint" style="margin:0 0 12px">${esc(msg || 'Abre esta app una vez con el link que te mandaron (el que termina en #k=…). Después ya no lo vuelve a pedir.')}</p>
+    <input class="campo" id="llaveIn" placeholder="Pega aquí el link completo" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button class="btn" id="llaveOk">Entrar</button></div>`;
+  document.body.appendChild(d);
+  d.querySelector('#llaveOk').onclick = () => {
+    const v = d.querySelector('#llaveIn').value.trim(), m = v.match(/k=([A-Za-z0-9]+)/) || v.match(/^([A-Za-z0-9]{20,})$/);
+    if (!m) return toast('Ese link no trae la clave', null, true);
+    try { localStorage.setItem('cons.k', m[1]); } catch (e) {}
+    location.reload();
+  };
+}
+function run(fn, ...args) { return runT(45000, fn, ...args); }
+/* Con límite de tiempo: si Google se atora, la app avisa en vez de quedarse pensando. */
+function runT(ms, fn, ...args) {
+  const k = claveApi();
+  if (!k) { pedirClave(); return Promise.reject('Falta el link de acceso'); }
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  let t;
+  const tiempo = new Promise((_, ko) => { t = setTimeout(() => { if (ctl) ctl.abort(); ko('Google está tardando en responder. Lo que capturaste sigue en pantalla: toca Guardar otra vez en un momento (no se duplica).'); }, ms); });
+  const pedido = fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ k, fn, args }), signal: ctl ? ctl.signal : undefined })
+    .then(r => r.json(), () => { throw 'Sin conexión. Revisa tu internet e intenta de nuevo.'; })
+    .then(o => {
+      if (o && o.ok) return o.r;
+      if (o && o.clave) { try { localStorage.removeItem('cons.k'); } catch (e) {} pedirClave('El link de acceso cambió o no es válido. Pega el link nuevo.'); }
+      throw (o && o.e) || 'Error desconocido';
+    });
+  return Promise.race([pedido, tiempo]).finally(() => clearTimeout(t));
+}
+const nuevaClave = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+let toastT;
+function toast(txt, accion, err, etiqueta) {
+  $('#toastTxt').textContent = txt;
+  const b = $('#toastBtn');
+  b.hidden = !accion; b.textContent = etiqueta || 'Deshacer';
+  b.onclick = accion ? () => { $('#toast').classList.remove('on'); accion(); } : null;
+  $('#toast').classList.toggle('err', !!err);
+  $('#toast').classList.add('on');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => $('#toast').classList.remove('on'), accion ? 6000 : 3200);
+}
+
+/** Chips con "más" cuando la lista es larga. */
+function chips(cont, opciones, valor, onPick, max) {
+  cont.innerHTML = '';
+  const corte = max && opciones.length > max + 1 && !cont.dataset.todo;
+  const lista = corte ? opciones.slice(0, max) : opciones;
+  if (valor && corte && !lista.includes(valor) && opciones.includes(valor)) lista.push(valor);
+  lista.forEach(o => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (o === valor ? ' on' : '');
+    b.textContent = o; b.setAttribute('aria-pressed', o === valor);
+    b.onclick = () => { [...cont.children].forEach(c => { c.classList.remove('on'); c.setAttribute('aria-pressed', 'false'); }); b.classList.add('on'); b.setAttribute('aria-pressed', 'true'); onPick(o); };
+    cont.appendChild(b);
+  });
+  if (corte) {
+    const b = document.createElement('button');
+    b.className = 'chip mas'; b.textContent = '+' + (opciones.length - lista.length) + ' más';
+    b.onclick = () => { cont.dataset.todo = '1'; chips(cont, opciones, valor, onPick, max); };
+    cont.appendChild(b);
+  }
+}
+
+/** Dropdown nativo (en iPhone abre la rueda). Último renglón: "+ Agregar nuevo…". */
+const CAT_NOMBRE = { consultorios: 'consultorio', tratamientos: 'tratamiento', especialistas: 'especialista', categoriasGasto: 'categoría de gasto' };
+function selectOpts(sel, opciones, valor, onPick, tipo, placeholder) {
+  const ops = opciones.slice();
+  if (valor && !ops.includes(valor)) ops.unshift(valor);
+  sel.innerHTML = `<option value="" disabled ${valor ? '' : 'selected'}>${esc(placeholder || 'Elige…')}</option>`
+    + ops.map(o => `<option value="${esc(o)}" ${o === valor ? 'selected' : ''}>${esc(o)}</option>`).join('')
+    + (tipo ? `<option value="__nuevo__">＋ Agregar ${CAT_NOMBRE[tipo]}…</option>` : '');
+  sel.classList.toggle('vacio', !valor);
+  sel.onchange = () => {
+    if (sel.value === '__nuevo__') {
+      sel.value = valor || '';
+      sel.classList.toggle('vacio', !valor);
+      nuevoCatalogo(tipo, v => { selectOpts(sel, BOOT[tipo], v, onPick, tipo, placeholder); onPick(v); });
+      return;
+    }
+    valor = sel.value; sel.classList.remove('vacio'); onPick(valor);
+  };
+}
+/** Modal para agregar un valor a un catálogo; lo guarda en la hoja y en BOOT. */
+function nuevoCatalogo(tipo, despues, valorInicial) {
+  const n = CAT_NOMBRE[tipo], fem = tipo === 'categoriasGasto';
+  abrirTexto({
+    titulo: (fem ? 'Nueva ' : 'Nuevo ') + n, valor: valorInicial || '', capital: 'words',
+    placeholder: fem ? 'Material, Renta…' : tipo === 'consultorios' ? 'Nombre del consultorio' : tipo === 'tratamientos' ? 'Nombre del tratamiento' : 'Nombre del especialista',
+    pista: 'Se agrega a tu lista y queda guardado en la hoja Catálogos.',
+    alListo: async v => {
+      v = v.trim(); if (!v) return;
+      try {
+        const r = await run('agregarCatalogo', tipo, v);
+        if (!BOOT[tipo].some(x => clave(x) === clave(r.valor))) BOOT[tipo].push(r.valor);
+        cacheSet('boot', BOOT);
+        toast(r.existia ? `${r.valor} ya estaba en la lista` : `${r.valor} agregado`);
+        despues && despues(r.valor);
+      } catch (e) { toast(e, null, true); }
+    }
+  });
+}
+
+/* ======================= teclado de letras propio =======================
+   En el iPhone, el teclado del sistema empuja el marco de Google hacia arriba (se ve un hueco blanco).
+   Este teclado vive dentro de la app: el campo conserva su cursor, pero el sistema no abre el suyo. */
+const TACTIL = (() => { try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } })();
+const TK = { inp: null, modo: 'abc', shift: false, acento: false, capital: 'sentences', tel: false, alListo: null, manual: false };
+const TK_ABC = [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l','ñ'], ['⇧','z','x','c','v','b','n','m','⌫'], ['123','´','espacio','Listo']];
+const TK_NUM = [['1','2','3','4','5','6','7','8','9','0'], ['-','/',':',';','(',')','$','&','@','"'], ['#','.',',','?','!',"'",'%','⌫'], ['ABC','´','espacio','Listo']];
+const TK_TEL = [['1','2','3'], ['4','5','6'], ['7','8','9'], ['+','0','⌫'], ['Listo']];
+const ACENTOS = { a: 'á', e: 'é', i: 'í', o: 'ó', u: 'ú', A: 'Á', E: 'É', I: 'Í', O: 'Ó', U: 'Ú' };
+function tkPintar() {
+  const tk = $('#tk');
+  const filas = TK.tel ? TK_TEL : TK.modo === 'abc' ? TK_ABC : TK_NUM;
+  tk.classList.toggle('tel', TK.tel);
+  tk.innerHTML = filas.map((f, i) => `<div class="tkFila${!TK.tel && TK.modo === 'abc' && i === 1 ? ' medio' : ''}">` + f.map(k => {
+    const fn = ['⇧', '⌫', '123', 'ABC', '´'].includes(k);
+    const cls = fn ? 'fn' + ((k === '⇧' && TK.shift) || (k === '´' && TK.acento) ? ' on' : '') : k === 'espacio' ? 'esp' : k === 'Listo' ? 'ok' : '';
+    const txt = k === '´' ? (TK.shift ? 'Á' : 'á') : TK.shift && k.length === 1 && !fn ? k.toUpperCase() : k;
+    return `<button class="${cls}" data-k="${esc(k)}" aria-label="${k === '⌫' ? 'Borrar' : k === '⇧' ? 'Mayúscula' : k === '´' ? 'Acento' : esc(k)}">${esc(txt)}</button>`;
+  }).join('') + '</div>').join('');
+}
+function tkAutoShift() {
+  const i = TK.inp; if (!i || TK.tel) return;
+  const antes = i.value.slice(0, i.selectionStart == null ? i.value.length : i.selectionStart);
+  const on = TK.capital === 'words' ? (!antes || / $/.test(antes)) : TK.capital === 'sentences' ? (!antes.trim() || /[.!?]\s$/.test(antes)) : false;
+  if (on !== TK.shift) { TK.shift = on; tkPintar(); }
+}
+function tkInsertar(txt) {
+  const i = TK.inp; if (!i) return;
+  const a = i.selectionStart == null ? i.value.length : i.selectionStart, b = i.selectionEnd == null ? a : i.selectionEnd;
+  i.value = i.value.slice(0, a) + txt + i.value.slice(b);
+  const pos = a + txt.length;
+  try { i.setSelectionRange(pos, pos); } catch (e) {}
+  i.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function tkBorrar() {
+  const i = TK.inp; if (!i) return;
+  let a = i.selectionStart == null ? i.value.length : i.selectionStart, b = i.selectionEnd == null ? a : i.selectionEnd;
+  if (a === b) { if (!a) return; a = a - 1; }
+  i.value = i.value.slice(0, a) + i.value.slice(b);
+  try { i.setSelectionRange(a, a); } catch (e) {}
+  i.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function tkTecla(k) {
+  if (!TK.inp) return;
+  if (k === 'Listo') { const f = TK.alListo; return f ? f() : cerrarTK(true); }
+  if (k === '⌫') { tkBorrar(); TK.acento = false; tkAutoShift(); return tkPintar(); }
+  if (k === '⇧') { TK.shift = !TK.shift; return tkPintar(); }
+  if (k === '123') { TK.modo = 'num'; return tkPintar(); }
+  if (k === 'ABC') { TK.modo = 'abc'; return tkPintar(); }
+  if (k === '´') { TK.acento = !TK.acento; return tkPintar(); }
+  let c = k === 'espacio' ? ' ' : k;
+  if (TK.shift && c.length === 1) c = c.toUpperCase();
+  if (TK.acento) { c = ACENTOS[c] || c; TK.acento = false; }
+  tkInsertar(c);
+  if (TK.modo === 'num' && (c === ' ' || c === "'")) TK.modo = 'abc';
+  const antes = TK.shift; TK.shift = false; tkAutoShift();
+  if (antes !== TK.shift || true) tkPintar();
+}
+function abrirTK(inp, cfg) {
+  TK.inp = inp; TK.capital = cfg.capital || 'sentences'; TK.tel = cfg.tipo === 'tel'; TK.alListo = cfg.alListo || null;
+  TK.modo = 'abc'; TK.acento = false; TK.shift = false;
+  inp.setAttribute('inputmode', 'none');
+  tkAutoShift(); tkPintar();
+  const tk = $('#tk'); tk.classList.add('on'); tk.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('tkOn');
+}
+function cerrarTK(blur) {
+  const tk = $('#tk'); if (!tk.classList.contains('on')) return;
+  tk.classList.remove('on'); tk.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('tkOn');
+  if (blur && TK.inp) TK.inp.blur();
+  TK.inp = null; TK.alListo = null;
+}
+(function () {
+  const tk = $('#tk'), burbuja = $('#tkBurbuja');
+  let rep = null;
+  const soltar = () => { clearInterval(rep); clearTimeout(rep); rep = null; burbuja.classList.remove('on'); tk.querySelectorAll('.pulso').forEach(x => x.classList.remove('pulso')); };
+  tk.addEventListener('pointerdown', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    e.preventDefault();
+    const k = b.dataset.k;
+    b.classList.add('pulso');
+    if (k.length === 1 && !['⇧', '⌫', '´'].includes(k)) {
+      const r = b.getBoundingClientRect();
+      burbuja.textContent = TK.shift ? k.toUpperCase() : k;
+      burbuja.style.left = (r.left + r.width / 2 - Math.max(44, r.width + 12) / 2) + 'px';
+      burbuja.style.width = Math.max(44, r.width + 12) + 'px';
+      burbuja.style.top = (r.top - 60) + 'px';
+      burbuja.classList.add('on');
+    }
+    tkTecla(k);
+    if (k === '⌫') rep = setTimeout(() => { rep = setInterval(() => tkTecla('⌫'), 70); }, 420);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => tk.addEventListener(ev, soltar));
+  tk.addEventListener('click', e => e.preventDefault());
+  tk.addEventListener('touchstart', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
+  /* buscadores: en el teléfono usan este teclado, en la compu el de siempre */
+  document.addEventListener('focusin', e => {
+    const t = e.target;
+    if (!TACTIL || !t || !t.matches || !t.matches('#pBuscar, #uBuscar')) return;
+    if (KP.inp) cerrarTeclado();
+    abrirTK(t, { capital: 'words', alListo: () => cerrarTK(true) });
+  });
+  document.addEventListener('focusout', e => {
+    if (TK.inp && e.target === TK.inp && e.target.id !== 'txIn') setTimeout(() => { if (TK.inp && document.activeElement !== TK.inp) cerrarTK(false); }, 120);
+  });
+  if (TACTIL) ['#pBuscar'].forEach(s => { const x = $(s); if (x) x.setAttribute('inputmode', 'none'); });
+})();
+
+/* ======================= hoja para escribir =======================
+   Un toque en un campo de texto abre esta hoja: el campo queda arriba, el teclado del teléfono sale debajo
+   y lo de atrás no se mueve. Sugerencias (pacientes, proveedores) se tocan sin escribir. */
+const TX = { cfg: null };
+function abrirTexto(cfg) {
+  if (KP.inp) cerrarTeclado();
+  cerrarOpciones();
+  TX.cfg = cfg;
+  const tx = $('#tx'), inp = $('#txIn');
+  $('#txLbl').textContent = cfg.titulo || '';
+  $('#txHint').textContent = cfg.pista || '';
+  inp.value = cfg.valor || '';
+  inp.placeholder = cfg.placeholder || '';
+  inp.setAttribute('inputmode', TACTIL ? 'none' : cfg.tipo === 'tel' ? 'tel' : 'text');
+  inp.setAttribute('autocapitalize', cfg.capital || 'sentences');
+  inp.setAttribute('autocorrect', cfg.capital === 'words' ? 'off' : 'on');
+  $('#txNativo').hidden = !TACTIL;
+  tx.classList.add('on'); tx.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('kb');
+  if (TACTIL) abrirTK(inp, { capital: cfg.capital || 'sentences', tipo: cfg.tipo, alListo: listoTexto });
+  inp.focus({ preventScroll: true });
+  try { const l = inp.value.length; inp.setSelectionRange(l, l); } catch (e) {}
+  pintarSugerencias();
+}
+function pintarSugerencias() {
+  const cfg = TX.cfg, box = $('#txLista');
+  const items = cfg && cfg.sugerencias ? cfg.sugerencias($('#txIn').value) : [];
+  box.innerHTML = items.map((it, k) => it.titulo ? `<h5>${esc(it.titulo)}</h5>` : `<button data-s="${k}" class="${it.nuevo ? 'nuevo' : ''}"><b>${esc(it.txt)}</b>${it.info ? `<span>${esc(it.info)}</span>` : ''}</button>`).join('');
+  box.querySelectorAll('button').forEach(b => b.onclick = () => { const it = items[+b.dataset.s]; cerrarTexto(); it.accion(); });
+}
+function cerrarTexto() {
+  const tx = $('#tx');
+  if (!tx.classList.contains('on')) return;
+  cerrarTK(false);
+  $('#txIn').blur();
+  tx.classList.remove('on'); tx.setAttribute('aria-hidden', 'true');
+  TX.cfg = null;
+  setTimeout(() => { if (!tx.classList.contains('on')) document.body.classList.remove('kb'); }, 160);
+}
+function listoTexto() {
+  const cfg = TX.cfg; if (!cfg) return;
+  const v = $('#txIn').value;
+  cerrarTexto();
+  cfg.alListo && cfg.alListo(v);
+}
+(function () {
+  $('#txOk').onclick = listoTexto;
+  $('#txNo').onclick = cerrarTexto;
+  $('#txNativo').onclick = () => {
+    const inp = $('#txIn'), cfg = TX.cfg || {};
+    cerrarTK(false);
+    inp.setAttribute('inputmode', cfg.tipo === 'tel' ? 'tel' : 'text');
+    inp.blur(); inp.focus();
+  };
+  $('#txIn').addEventListener('pointerup', () => { if (TK.inp) setTimeout(tkAutoShift, 0); });
+  $('#txIn').addEventListener('input', pintarSugerencias);
+  $('#txIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); listoTexto(); } else if (e.key === 'Escape') cerrarTexto(); });
+})();
+
+/* Cada campo marcado con data-tx abre la hoja. Los de paciente y proveedor traen sugerencias. */
+function sugPacientes(q) {
+  if (!BOOT) return [];
+  const k = clave(q), info = p => `${plural(p.visitas, 'visita', 'visitas')}${p.saldo > 0 ? ' · debe ' + mx(p.saldo) : p.consultorio ? ' · ' + p.consultorio : ''}`;
+  if (!k) {
+    const rec = BOOT.pacientes.filter(p => p.ultima).sort((a, b) => a.ultima < b.ultima ? 1 : -1).slice(0, 8);
+    return rec.length ? [{ titulo: 'Recientes' }].concat(rec.map(p => ({ txt: p.nombre, info: info(p), accion: () => elegirPaciente(p) }))) : [];
+  }
+  const l = BOOT.pacientes.filter(p => p.clave.includes(k)).slice(0, 8);
+  const out = l.map(p => ({ txt: p.nombre, info: info(p), accion: () => elegirPaciente(p) }));
+  if (!l.some(p => p.clave === k)) out.push({ txt: '+ Nuevo: ' + q.trim(), info: 'se crea al guardar', nuevo: true, accion: () => pacienteNuevo(q) });
+  return out;
+}
+function pacienteNuevo(nombre) {
+  C.id = ''; C.nombre = String(nombre || '').trim(); $('#cNombre').value = C.nombre; $('#cSug').hidden = true;
+  if (C.nombre) mostrarPacSel({ id: '', nombre: C.nombre, visitas: 0 });
+}
+function sugLista(lista, q) {
+  const k = clave(q);
+  return (lista || []).filter(x => !k || clave(x).includes(k)).slice(0, 8);
+}
+function abrirCampo(inp) {
+  const id = inp.id, lbl = inp.dataset.tx || inp.placeholder || '';
+  const fin = v => { inp.value = v.trim(); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('txlisto', { bubbles: true })); };
+  if (id === 'cNombre') return abrirTexto({
+    titulo: 'Paciente', valor: C.id ? '' : (C.nombre || ''), placeholder: 'Nombre del paciente', capital: 'words',
+    pista: 'Toca uno de la lista o escribe un nombre nuevo.', sugerencias: sugPacientes,
+    alListo: v => {
+      const k = clave(v); if (!k) return;
+      const p = BOOT && BOOT.pacientes.find(x => x.clave === k);
+      p ? elegirPaciente(p) : pacienteNuevo(v);
+    }
+  });
+  if (id === 'gProv') return abrirTexto({
+    titulo: 'Proveedor', valor: inp.value, placeholder: inp.placeholder, capital: 'words',
+    sugerencias: q => { const l = sugLista(BOOT && BOOT.proveedores, q); return l.length ? [{ titulo: q ? 'Coinciden' : 'Tus proveedores' }].concat(l.map(x => ({ txt: x, accion: () => fin(x) }))) : []; },
+    alListo: fin
+  });
+  abrirTexto({ titulo: lbl, valor: inp.value, placeholder: inp.placeholder, tipo: inp.getAttribute('inputmode') === 'tel' ? 'tel' : 'text',
+    capital: inp.getAttribute('autocapitalize') || 'sentences', alListo: fin });
+}
+document.addEventListener('click', e => {
+  const inp = e.target && e.target.closest ? e.target.closest('input[data-tx]') : null;
+  if (!inp || inp.disabled) return;
+  e.preventDefault();
+  abrirCampo(inp);
+});
+
+/* ======================= hoja de opciones (menús) ======================= */
+let OP = null;
+function abrirOpciones(sel) {
+  if (KP.inp) cerrarTeclado();
+  OP = sel;
+  const lbl = sel.closest('label') || (sel.previousElementSibling && sel.previousElementSibling.matches('label') ? sel.previousElementSibling : null);
+  const ph = sel.options[0] && sel.options[0].disabled ? sel.options[0].textContent : '';
+  $('#opLbl').textContent = (lbl ? lbl.textContent : '') || ph || 'Elige';
+  const ops = [...sel.options].filter(o => !o.disabled);
+  const box = $('#opLista');
+  box.innerHTML = ops.map((o, k) => `<button data-o="${k}" class="${o.value === '__nuevo__' ? 'agregar' : o.value === sel.value ? 'on' : ''}">${esc(o.textContent)}</button>`).join('');
+  box.querySelectorAll('button').forEach(b => b.onclick = () => {
+    const o = ops[+b.dataset.o];
+    cerrarOpciones();
+    sel.value = o.value;
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  const op = $('#op'); op.classList.add('on'); op.setAttribute('aria-hidden', 'false');
+  const actual = box.querySelector('button.on'); if (actual) actual.scrollIntoView({ block: 'nearest' });
+}
+function cerrarOpciones() {
+  const op = $('#op'); if (!op.classList.contains('on')) return;
+  op.classList.remove('on'); op.setAttribute('aria-hidden', 'true'); OP = null;
+}
+(function () {
+  $('#op .opFondo').onclick = cerrarOpciones;
+  $('#opNo').onclick = cerrarOpciones;
+  let t0 = null;
+  document.addEventListener('touchstart', e => { const t = e.touches[0]; t0 = t ? { x: t.clientX, y: t.clientY } : null; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const sel = e.target && e.target.closest ? e.target.closest('select.campo') : null;
+    if (!sel || !t0) return;
+    const t = e.changedTouches[0];
+    if (t && Math.hypot(t.clientX - t0.x, t.clientY - t0.y) > 10) return;
+    e.preventDefault(); abrirOpciones(sel);
+  }, { passive: false });
+  document.addEventListener('mousedown', e => {
+    const sel = e.target && e.target.closest ? e.target.closest('select.campo') : null;
+    if (!sel || e.button !== 0) return;
+    e.preventDefault(); abrirOpciones(sel);
+  });
+})();
+
+/* campo que falta: se marca, tiembla y se acomoda a la vista; no abre teclados */
+function falta(el, msg) {
+  if (el) {
+    el.classList.remove('falta'); void el.offsetWidth; el.classList.add('falta');
+    setTimeout(() => el.classList.remove('falta'), 1400);
+    if ($('#app').contains(el)) {
+      const r = el.getBoundingClientRect(), head = document.querySelector('header.top').getBoundingClientRect().bottom;
+      if (r.top < head + 10 || r.bottom > window.innerHeight - 110) $('#app').scrollBy({ top: r.top - head - 80, behavior: 'smooth' });
+    }
+  }
+  toast(msg, null, true);
+}
+
+/* ======================= teclados =======================
+   Montos: teclado propio de la app (no abre el del teléfono, así que la pantalla no se mueve).
+   Texto: antes de que salga el teclado del teléfono, el campo se desliza una sola vez a la parte de arriba. */
+const fmtMonto = n => { const v = Number(n) || 0; return v ? '$' + v.toLocaleString('es-MX', { maximumFractionDigits: 2 }) : ''; };
+const KP = { inp: null, raw: '', fresco: false };
+function kpFormato(raw, pct) {
+  if (!raw) return '';
+  const [e, d] = raw.split('.');
+  const ent = Number(e || 0).toLocaleString('es-MX');
+  return (pct ? '' : '$') + ent + (raw.includes('.') ? '.' + (d || '') : '') + (pct ? '%' : '');
+}
+function kpEtiqueta(inp) {
+  if (inp.id === 'cMonto') return 'Monto del cobro';
+  if (inp.id === 'gMonto') return 'Monto del gasto';
+  if (inp.id === 'cSuCobro') return 'Parte de ' + (C.especialista || 'especialista');
+  if (inp.id === 'pctIn') return 'Porcentaje del consultorio';
+  return 'Monto';
+}
+function kpAyuda() {
+  const a = $('#kpAyuda'), i = KP.inp;
+  a.className = ''; a.textContent = '';
+  if (!i) return;
+  if (i.id === 'cMonto' || i.id === 'cSuCobro') {
+    const q = calcQueda();
+    if (q.monto > 0) { a.textContent = 'Te queda ' + mx(q.queda) + (q.descuentos ? ' · ' + q.descuentos : ''); a.className = q.queda >= 0 ? 'pos' : 'aviso'; }
+  } else if (i.id === 'gMonto') {
+    const lim = (BOOT && BOOT.limiteEfectivo) || 2000, m = numDe(i.value);
+    if (clave(G.metodo) === 'efectivo' && m > lim) { a.textContent = 'En efectivo no es deducible arriba de ' + mx(lim); a.className = 'aviso'; }
+    else if (G.categoria) a.textContent = G.categoria + ' · ' + G.metodo;
+  }
+}
+function kpRapidos() {
+  const box = $('#kpRapidos'), i = KP.inp, ops = [];
+  if (i && i.id === 'cSuCobro') {
+    const m = numDe($('#cMonto').value);
+    if (m > 0) [30, 40, 50].forEach(p => ops.push([p + '% · ' + mx(m * p / 100), Math.round(m * p) / 100]));
+  }
+  if (i && i.id === 'cMonto' && BOOT && C.tratamiento) {
+    const t = clave(C.tratamiento), p = BOOT.precios[t + '|' + clave(C.consultorio)] || BOOT.precios[t];
+    if (p) ops.push(['Precio de la última vez · ' + mx(p), p]);
+  }
+  box.hidden = !ops.length;
+  box.innerHTML = ops.map((o, k) => `<button data-r="${k}">${esc(o[0])}</button>`).join('');
+  box.querySelectorAll('button').forEach(b => b.onclick = () => {
+    const v = ops[+b.dataset.r][1];
+    KP.raw = String(v); KP.fresco = true; kpPintar(); cerrarTeclado();
+  });
+}
+function kpPintar() {
+  const i = KP.inp; if (!i) return;
+  i.value = kpFormato(KP.raw, i.dataset.kp === 'pct');
+  i.dispatchEvent(new Event('input', { bubbles: true }));
+  kpAyuda();
+}
+function kpTecla(k) {
+  if (!KP.inp) return;
+  let r = KP.raw;
+  if (k === 'del') { r = KP.fresco ? '' : r.slice(0, -1); }
+  else if (k === '.') { if (KP.fresco) r = ''; if (!r.includes('.')) r = (r || '0') + '.'; }
+  else {
+    if (KP.fresco) r = '';
+    const [e, d] = r.split('.');
+    if (r.includes('.') && (d || '').length >= 2) return;
+    if (!r.includes('.') && (e || '').length >= 8) return;
+    r = r === '0' ? k : r + k;
+  }
+  KP.fresco = false; KP.raw = r; kpPintar();
+}
+function abrirTeclado(inp) {
+  if (KP.inp === inp) return;
+  if (KP.inp) KP.inp.classList.remove('kpOn');
+  const act = document.activeElement;
+  if (act && act !== inp && act.matches && act.matches('input,textarea')) act.blur();
+  KP.inp = inp;
+  const n = numDe(inp.value);
+  KP.raw = n ? String(n) : ''; KP.fresco = !!n;
+  inp.classList.add('kpOn');
+  $('#kpLbl').textContent = kpEtiqueta(inp);
+  kpRapidos(); kpAyuda();
+  const kp = $('#kp');
+  kp.classList.add('on'); kp.setAttribute('aria-hidden', 'false');
+  requestAnimationFrame(() => {
+    if (!$('#app').contains(inp)) return;
+    const alto = kp.offsetHeight, r = inp.getBoundingClientRect();
+    const head = document.querySelector('header.top').getBoundingClientRect().bottom;
+    const libre = window.innerHeight - alto - 18;
+    let delta = 0;
+    if (r.bottom + 34 > libre) delta = r.bottom + 34 - libre;
+    if (r.top - delta < head + 12) delta = r.top - head - 12;
+    if (Math.abs(delta) > 2) $('#app').scrollBy({ top: delta, behavior: 'smooth' });
+  });
+}
+function cerrarTeclado() {
+  const kp = $('#kp');
+  if (KP.inp) { KP.inp.classList.remove('kpOn'); if (document.activeElement === KP.inp) KP.inp.blur(); }
+  KP.inp = null;
+  kp.classList.remove('on'); kp.setAttribute('aria-hidden', 'true');
+}
+(function () {
+  const kp = $('#kp');
+  kp.querySelectorAll('.kpGrid button').forEach(b => {
+    b.addEventListener('pointerdown', e => { e.preventDefault(); b.classList.add('pulso'); kpTecla(b.dataset.k); setTimeout(() => b.classList.remove('pulso'), 90); });
+  });
+  $('#kpOk').onclick = cerrarTeclado;
+  document.addEventListener('focusin', e => { const t = e.target; if (t && t.dataset && t.dataset.kp !== undefined) abrirTeclado(t); });
+  document.addEventListener('click', e => {
+    const t = e.target;
+    if (!KP.inp || kp.contains(t)) return;
+    if (t.closest && t.closest('input[data-kp]')) return abrirTeclado(t.closest('input[data-kp]'));
+    cerrarTeclado();
+  }, true);
+  document.addEventListener('keydown', e => {
+    if (!KP.inp) return;
+    if (/^[0-9]$/.test(e.key)) { e.preventDefault(); kpTecla(e.key); }
+    else if (e.key === '.' || e.key === ',') { e.preventDefault(); kpTecla('.'); }
+    else if (e.key === 'Backspace') { e.preventDefault(); kpTecla('del'); }
+    else if (e.key === 'Enter' || e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); cerrarTeclado(); }
+  });
+
+  /* campos de texto */
+  const app = $('#app');
+  const esTexto = el => el && el.matches && el.matches('input:not([data-kp]):not([type=date]):not([type=checkbox]):not([readonly]), textarea');
+  function deslizar(delta) {
+    const main = app.querySelector('main');
+    const antes = app.scrollTop;
+    app.scrollTop = antes + delta;
+    const real = app.scrollTop - antes;
+    if (!real) return;
+    main.style.transition = 'none'; main.style.transform = 'translateY(' + real + 'px)';
+    void main.offsetHeight;
+    main.style.transition = 'transform .26s cubic-bezier(.2,.8,.2,1)'; main.style.transform = '';
+    setTimeout(() => { main.style.transition = ''; }, 300);
+  }
+  function acomodar(el) {
+    if (!app.contains(el)) return;
+    const head = document.querySelector('header.top').getBoundingClientRect().bottom;
+    const r = el.getBoundingClientRect();
+    const zona = window.innerHeight * 0.4;
+    if (r.top >= head + 8 && r.bottom <= zona) return;
+    deslizar(r.top - (head + 20));
+  }
+  let toque = null;
+  document.addEventListener('touchstart', e => { const t = e.touches[0]; toque = t ? { x: t.clientX, y: t.clientY } : null; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const el = e.target && e.target.closest ? e.target.closest('input,textarea') : null;
+    if (!esTexto(el) || document.activeElement === el || !toque) return;
+    const t = e.changedTouches[0];
+    if (t && Math.hypot(t.clientX - toque.x, t.clientY - toque.y) > 10) return;
+    e.preventDefault();
+    if (KP.inp) cerrarTeclado();
+    document.body.classList.add('kb');
+    acomodar(el);
+    el.focus({ preventScroll: true });
+  }, { passive: false });
+  document.addEventListener('focusin', e => { if (esTexto(e.target)) { document.body.classList.add('kb'); if (KP.inp) cerrarTeclado(); } });
+  document.addEventListener('focusout', () => setTimeout(() => { if (!esTexto(document.activeElement)) document.body.classList.remove('kb'); }, 150));
+})();
+
+/* caché local: lo último que se vio aparece al instante y se refresca en segundo plano */
+const cacheGet = k => { try { const v = localStorage.getItem('cons1.cache.' + k); return v ? JSON.parse(v) : null; } catch (e) { return null; } };
+const cacheSet = (k, v) => { try { localStorage.setItem('cons1.cache.' + k, JSON.stringify(v)); } catch (e) {} };
+
+function modal(html) {
+  const m = $('#modal');
+  m.innerHTML = `<div class="modal${/<input/.test(html) ? ' arriba' : ''}"><div class="caja">${html}</div></div>`;
+  m.hidden = false;
+  m.querySelector('.modal').onclick = e => { if (e.target === m.querySelector('.modal')) cerrarModal(); };
+  return m;
+}
+function cerrarModal() { if (KP.inp && $('#modal').contains(KP.inp)) cerrarTeclado(); $('#modal').hidden = true; $('#modal').innerHTML = ''; }
+
+const arriba = () => { const a = $('#app'); if (a) a.scrollTop = 0; };
+
+/* ======================= navegación ======================= */
+let vista = 'inicio', BOOT = null;
+function ir(v, opts) {
+  vista = v;
+  document.querySelectorAll('.vista').forEach(s => s.classList.toggle('activa', s.id === 'v-' + v));
+  const navV = v === 'ficha' ? 'pacientes' : v;
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === navV));
+  arriba();
+  modoBoton();
+  if (v === 'inicio') cargarInicio();
+  if (v === 'pacientes') pintarPacientes();
+  if (v === 'captura') prepCaptura(opts);
+  if (v === 'pendientes') cargarPendientes();
+  if (v === 'catalogos') pintarCatalogos();
+}
+let vistaAntes = 'inicio';
+$('#btnCat').onclick = () => { if (vista !== 'catalogos') vistaAntes = vista === 'ficha' ? 'pacientes' : vista; ir('catalogos'); };
+$('#katBack').onclick = () => ir(vistaAntes);
+$('#btnHoja').onclick = () => { if (BOOT && BOOT.urlHoja) window.open(BOOT.urlHoja, '_blank'); };
+function pintarCatalogos() {
+  const box = $('#catalogos');
+  if (!BOOT) { box.innerHTML = '<div class="card"><div class="skel"></div><p class="hint">Cargando…</p></div>'; cargarBoot().then(() => { if (vista === 'catalogos') pintarCatalogos(); }); return; }
+  const titulos = { consultorios: 'CONSULTORIOS', tratamientos: 'TRATAMIENTOS', especialistas: 'ESPECIALISTAS', categoriasGasto: 'CATEGORÍAS DE GASTO' };
+  box.innerHTML = Object.keys(titulos).map(t => `
+    <div class="card catalogo" data-t="${t}"><h3>${titulos[t]} · ${BOOT[t].length}</h3>
+      ${t === 'consultorios' ? '<p class="hint" style="margin:-6px 0 6px">El % es lo que se queda cada consultorio de lo que cobras ahí. Tócalo para cambiarlo.</p>' : ''}
+      ${BOOT[t].slice().sort((a, b) => a.localeCompare(b)).map(x => `<div class="it"><span>${esc(x)}</span>${t === 'consultorios' ? `<button class="pill" data-pct="${esc(x)}">${pctDe(x)}%</button>` : ''}</div>`).join('') || '<div class="vacio">Vacío</div>'}
+      <div class="agregar"><input class="campo" placeholder="${t === 'categoriasGasto' ? 'Nueva categoría' : 'Nuevo ' + CAT_NOMBRE[t]}" autocapitalize="words" readonly data-tx="${t === 'categoriasGasto' ? 'Nueva categoría' : 'Nuevo ' + CAT_NOMBRE[t]}"><button class="btn">Agregar</button></div>
+    </div>`).join('');
+  box.querySelectorAll('button[data-pct]').forEach(b => b.onclick = () => editarPct(b.dataset.pct));
+  box.querySelectorAll('.card').forEach(c => {
+    const t = c.dataset.t, inp = c.querySelector('input'), b = c.querySelector('.btn');
+    const agregar = async () => {
+      const v = inp.value.trim(); if (!v) return abrirCampo(inp);
+      b.disabled = true;
+      try {
+        const r = await run('agregarCatalogo', t, v);
+        if (!BOOT[t].some(x => clave(x) === clave(r.valor))) BOOT[t].push(r.valor);
+        cacheSet('boot', BOOT); toast(r.existia ? `${r.valor} ya estaba` : `${r.valor} agregado`); pintarCatalogos();
+      } catch (e) { b.disabled = false; toast(e, null, true); }
+    };
+    b.onclick = agregar;
+    inp.addEventListener('txlisto', () => { if (inp.value.trim()) agregar(); });
+  });
+}
+const lada = () => (BOOT && BOOT.marca && BOOT.marca.lada) || '52';
+const firma = () => (BOOT && BOOT.marca && BOOT.marca.firma) || '';
+const pctDe = cons => (BOOT && BOOT.pctConsultorio && BOOT.pctConsultorio[clave(cons)]) || 0;
+function editarPct(cons) {
+  const m = modal(`<h4>¿Qué % se queda ${esc(cons)}?</h4>
+    <p class="hint" style="margin:0 0 10px">De cada cobro en este consultorio. Pon 0 si no se queda nada o si se lo pagas aparte como renta.</p>
+    <input class="campo num" id="pctIn" data-kp="pct" readonly inputmode="none" value="${pctDe(cons) ? pctDe(cons) + '%' : ''}" placeholder="0%">
+    <button class="btn" id="pctOk">Guardar</button><button class="btn sec" id="pctNo">Cancelar</button>`);
+  const inp = m.querySelector('#pctIn'); setTimeout(() => inp.focus(), 60);
+  m.querySelector('#pctNo').onclick = cerrarModal;
+  m.querySelector('#pctOk').onclick = async () => {
+    const v = numDe(inp.value);
+    if (v < 0 || v > 100) return toast('El porcentaje va de 0 a 100', null, true);
+    try { const r = await run('cambiarPctConsultorio', cons, v); BOOT.pctConsultorio[clave(cons)] = v; cacheSet('boot', BOOT); cerrarModal(); toast(r); pintarCatalogos(); }
+    catch (e) { toast(e, null, true); }
+  };
+}
+const ICON_MAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>';
+const ICON_OK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+function modoBoton() {
+  const b = document.querySelector('nav.tabs .mas'), g = vista === 'captura';
+  b.classList.toggle('guardar', g);
+  b.innerHTML = g ? ICON_OK : ICON_MAS;
+  b.setAttribute('aria-label', g ? 'Guardar' : 'Nuevo cobro');
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => {
+  if (b.dataset.v === 'captura' && vista === 'captura') return modo === 'cobro' ? guardarCobro() : guardarGasto();
+  ir(b.dataset.v);
+});
+$('#btnRef').onclick = async () => { await cargarBoot(); ir(vista); toast('Actualizado'); };
+
+let bootError = '', bootCargando = null;
+function cargarBoot() {
+  if (bootCargando) return bootCargando;
+  if (!BOOT) { const c = cacheGet('boot'); if (c && c.pacientes && c.consultorios) BOOT = c; }   // abre al instante con lo último visto
+  bootCargando = run('getBoot').then(b => { BOOT = b; bootError = ''; cacheSet('boot', b); pintarMarca(); if (!b.configurado) bienvenida(); })
+    .catch(e => { bootError = String(e); if (!BOOT && claveApi()) toast('No pude leer el archivo: ' + e, null, true); })
+    .finally(() => { bootCargando = null; if (vista === 'pacientes') pintarPacientes(); if (vista === 'captura') (capturaLista ? (pintarCobro(), pintarGasto()) : prepCaptura()); if (vista === 'catalogos') pintarCatalogos(); if (vista === 'pendientes' && ultimoPend) pintarPendientes(ultimoPend); });
+  return bootCargando;
+}
+
+/* ======================= BIENVENIDA (primera vez) ======================= */
+function pintarMarca() {
+  if (!BOOT || !BOOT.marca) return;
+  $('.brand .n').textContent = BOOT.marca.nombre; $('.brand .e').textContent = BOOT.marca.especialidad; $('.mono').textContent = BOOT.marca.iniciales;
+  if (BOOT.version) $('#verApp').textContent = BOOT.version;
+  try { localStorage.setItem('cons.marca', JSON.stringify(BOOT.marca)); } catch (e) {}
+}
+let bienvenidaAbierta = false;
+function bienvenida() {
+  if (bienvenidaAbierta) return;
+  bienvenidaAbierta = true;
+  const m = modal(`<h4>Bienvenida</h4>
+    <p class="hint" style="margin:0 0 6px">Ya se creó tu archivo en tu Google Drive: <b>Consultorio · mis finanzas</b>. Solo tú lo ves.</p>
+    <label class="t">Tu nombre, como quieres que aparezca</label><input class="campo" id="bNom" placeholder="Dra. Ana López" autocapitalize="words" readonly data-tx="Tu nombre">
+    <label class="t">Tu especialidad</label><input class="campo" id="bEsp" placeholder="Periodoncia" autocapitalize="sentences" readonly data-tx="Tu especialidad">
+    <p class="hint">Tus consultorios y tratamientos se agregan solos la primera vez que los usas al capturar un cobro.</p>
+    <button class="btn" id="bOk">Empezar</button>`);
+  m.querySelector('.modal').onclick = null;
+  m.querySelector('#bOk').onclick = async () => {
+    const nombre = m.querySelector('#bNom').value.trim(), esp = m.querySelector('#bEsp').value.trim();
+    if (!nombre) return falta(m.querySelector('#bNom'), 'Escribe tu nombre');
+    m.querySelector('#bOk').disabled = true;
+    try {
+      BOOT.marca = await run('guardarConfig', { nombre, especialidad: esp });
+      BOOT.configurado = true; cacheSet('boot', BOOT); pintarMarca();
+      bienvenidaAbierta = false; cerrarModal(); toast('Listo. Captura tu primer cobro con el botón +');
+    } catch (e) { m.querySelector('#bOk').disabled = false; toast(e, null, true); }
+  };
+}
+
+/* ======================= INICIO ======================= */
+let mesVista = hoy().slice(0, 7);
+function moverMes(n) {
+  const [y, m] = mesVista.split('-').map(Number);
+  const d = new Date(y, m - 1 + n, 1);
+  mesVista = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  cargarInicio();
+}
+$('#mesAnt').onclick = () => moverMes(-1);
+$('#mesSig').onclick = () => moverMes(1);
+
+let inicioPedido = 0;
+/* ---- Para el SAT: estimado de cuánto apartar ---- */
+const RESICO_MENSUAL = [[25000, 0.01], [50000, 0.011], [83333.33, 0.015], [208333.33, 0.02], [291666.67, 0.025]];
+function tarjetaSat(s, m) {
+  if (!s || s.regimen === 'No mostrar') return '';
+  if (!s.regimen) return `<div class="card sat"><h3>PARA EL SAT</h3>
+    <p style="font-size:15px;margin-bottom:4px"><b>¿Cómo pagas impuestos?</b></p>
+    <p class="hint" style="margin:0 0 12px">Con esto la app te dice cada mes cuánto apartar, para que el pago no te tome por sorpresa.</p>
+    <div class="chips"><button class="chip" data-sat="RESICO">RESICO</button><button class="chip" data-sat="Otro">Otro régimen</button><button class="chip" data-sat="No mostrar">No mostrar</button></div>
+    <p class="hint">¿No sabes cuál? Está en tu Constancia de Situación Fiscal, o pregúntale a tu contador.</p></div>`;
+  const mes = MESES[m - 1], sig = MESES[m % 12];
+  let rango = '';
+  if (s.regimen === 'RESICO') {
+    const i = RESICO_MENSUAL.findIndex(r => s.base <= r[0]);
+    const tope = i >= 0 ? RESICO_MENSUAL[i][0] : null, prevTope = i > 0 ? RESICO_MENSUAL[i - 1][0] : 0;
+    const siguiente = i >= 0 && i < RESICO_MENSUAL.length - 1 ? RESICO_MENSUAL[i + 1][1] : null;
+    if (tope && siguiente) rango = `<div class="rango"><div class="bar"><i style="width:${Math.min(100, (s.base - prevTope) / (tope - prevTope) * 100)}%"></i></div>
+      <div class="h"><span>Tasa ${pc(s.tasa, 1)}</span><span>${mx(tope - s.base)} para pasar a ${pc(siguiente, 1)}</span></div></div>
+      <p class="hint" style="margin-top:6px">En RESICO, si pasas de ${mx(tope)} en el mes, la tasa nueva aplica a <b>todo</b> lo cobrado del mes.</p>`;
+  }
+  return `<div class="card sat"><h3>PARA EL SAT · ${mes.toUpperCase()}</h3>
+    <div class="monto num">${s.base ? 'Aparta ' + mx(s.monto) : mx(0)}</div>
+    <div class="sub">${s.base ? `${pc(s.tasa, 1)} de ${mx(s.base)} cobrado · ${s.regimen === 'RESICO' ? 'RESICO' : 'lo que pediste apartar'}` : 'Todavía no hay cobros este mes'}. Se paga a más tardar el 17 de ${sig}.</div>
+    ${rango}
+    <div class="fila" style="margin-top:8px"><span class="l">En el año llevas para apartar</span><span class="v">${mx(s.acumulado)}</span></div>
+    ${s.topeResico ? `<div class="nota aviso">Ya cobraste más de $3,500,000 en el año: es el tope de RESICO. Habla con tu contador.</div>` : ''}
+    <p class="hint">Estimado con lo que capturas en la app. El pago real lo confirma tu contador.</p>
+    <button class="cambiar" data-sat="cambiar">Cambiar régimen</button></div>`;
+}
+function elegirRegimen(v) {
+  const guardar = async datos => {
+    try { toast(await run('guardarImpuestos', datos)); cargarInicio(); } catch (e) { toast(e, null, true); }
+  };
+  if (v === 'RESICO' || v === 'No mostrar') return guardar({ regimen: v });
+  if (v === 'cambiar') {
+    const m = modal(`<h4>¿Cómo pagas impuestos?</h4>
+      <button class="btn sec" data-r="RESICO">RESICO</button><button class="btn sec" data-r="Otro">Otro régimen (pongo un %)</button><button class="btn sec" data-r="No mostrar">No mostrar</button>`);
+    m.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { cerrarModal(); elegirRegimen(b.dataset.r); });
+    return;
+  }
+  const m = modal(`<h4>¿Cuánto apartas para impuestos?</h4>
+    <p class="hint" style="margin:0 0 10px">El % de lo cobrado que te sugiere tu contador. Si no sabes, pregúntale: depende de tu régimen y tus deducciones.</p>
+    <input class="campo num" id="satPct" data-kp="pct" readonly inputmode="none" placeholder="0%">
+    <button class="btn" id="satOk">Guardar</button><button class="btn sec" id="satNo">Cancelar</button>`);
+  setTimeout(() => m.querySelector('#satPct').focus(), 60);
+  m.querySelector('#satNo').onclick = cerrarModal;
+  m.querySelector('#satOk').onclick = () => { const p = numDe(m.querySelector('#satPct').value); if (KP.inp) cerrarTeclado(); cerrarModal(); guardar({ regimen: 'Otro', pct: p }); };
+}
+function estadoRep(r, y, soloEstado) {
+  const est = !r || !r.existe ? `<div class="nota gris repEstado">Todavía no generas el reporte ${y}. Con un toque queda listo en tu archivo, con todo el año por mes.</div>`
+    : r.viejo ? `<div class="nota aviso repEstado">Tu reporte ${y} tiene movimientos nuevos. Actualízalo antes de mandárselo a tu contador.</div>`
+    : `<div class="nota ok repEstado">Reporte ${y} al día${r.generado && r.generado !== 'ahora' ? ' · generado ' + fCorta(r.generado.slice(0, 10)) + ' ' + r.generado.slice(11) : ''}.</div>`;
+  if (soloEstado) return est;
+  const txt = !r || !r.existe ? `Generar reporte ${y}` : r.viejo ? `Actualizar reporte ${y}` : `Volver a generar reporte ${y}`;
+  return est + `<button class="btn sec" id="btnReporte">${txt}</button><p class="hint">Organiza tus datos; tu contador decide qué es deducible.</p>`;
+}
+async function cargarInicio() {
+  const [y, m] = mesVista.split('-');
+  $('#mesLbl').textContent = MESES[+m - 1] + ' ' + y;
+  const box = $('#inicio'), ym = mesVista, pedido = ++inicioPedido;
+  const c = cacheGet('inicio.' + ym);
+  if (c) pintarInicio(c); else box.innerHTML = '<div class="card"><div class="skel"></div><div class="skel" style="width:60%"></div></div>';
+  box.classList.add('cargando');
+  try {
+    const d = await run('getInicio', ym);
+    if (pedido !== inicioPedido) return;          // ya cambió de mes
+    cacheSet('inicio.' + ym, d);
+    pintarInicio(d);
+  } catch (e) {
+    if (!c) box.innerHTML = `<div class="card"><b>No pude cargar el inicio.</b><p class="hint">${esc(e)}</p></div>`;
+    else toast('Sin conexión; mostrando lo último que vi', null, true);
+  } finally { if (pedido === inicioPedido) box.classList.remove('cargando'); }
+}
+function pintarInicio(d) {
+  const [y, m] = mesVista.split('-');
+  const box = $('#inicio');
+  {
+    const esHoy = mesVista === d.hoy.slice(0, 7);
+    const difC = d.cobradoPrev ? (d.cobrado - d.cobradoPrev) / d.cobradoPrev : null;
+    const maxS = Math.max(...d.semanas.map(s => s.total), 1);
+    const maxC = d.porConsultorio.length ? d.porConsultorio[0][1] : 1;
+    const frase = !d.consultas ? `<div class="nota gris">Nada capturado todavía en ${MESES[+m - 1]}. El primer cobro toma 10 segundos.</div>`
+      : esHoy && d.consultasHoy ? `<div class="nota ok">Hoy: ${mx(d.cobradoHoy)} en ${plural(d.consultasHoy, 'cobro', 'cobros')}.</div>`
+      : d.pendienteMes > 0 ? `<div class="nota aviso">${mx(d.pendienteMes)} de este mes siguen por cobrar. Están en Pendientes.</div>`
+      : `<div class="nota ok">Todo lo del mes ya está cobrado.</div>`;
+
+    box.innerHTML = `
+      <div class="card dark">
+        <h3>${esHoy ? 'Este mes' : MESES[+m - 1] + ' ' + y} · cobrado</h3>
+        <div class="big num">${mx(d.cobrado)}</div>
+        <div class="sub">${mx(d.atendido)} atendido en ${plural(d.consultas, 'consulta', 'consultas')}${d.cobradoPrev ? (d.parcial ? ` · el mes pasado a estas alturas llevaba ${mx(d.cobradoPrev)}` : ` · ${difC >= 0 ? '+' : ''}${pc(difC)} vs el mes anterior`) : ''}</div>
+        <div class="fila" style="margin-top:10px"><span class="l">− Especialistas</span><span class="v">${mx(d.especialistas)}</span></div>
+        ${d.parteCons ? `<div class="fila"><span class="l">− Parte de consultorios</span><span class="v">${mx(d.parteCons)}</span></div>` : ''}
+        <div class="fila"><span class="l">− Gastos</span><span class="v">${mx(d.gastos)}</span></div>
+        <div class="util"><div class="l">Utilidad<small>${d.utilidad > 0 && d.cobrado ? 'margen ' + pc(d.margen) : 'cobrado − especialistas − consultorios − gastos'}</small></div><div class="v num">${mx(d.utilidad)}</div></div>
+        ${d.sat && d.sat.monto > 0 ? `<div class="libre"><span>− Para el SAT (estimado) ${mx(d.sat.monto)}</span><span>Libre <b class="num">${mx(d.utilidad - d.sat.monto)}</b></span></div>` : ''}
+      </div>
+      ${tarjetaSat(d.sat, +m)}
+      <div class="card">
+        ${frase}
+        <h3 style="margin-top:14px">ÚLTIMAS 8 SEMANAS · ATENDIDO</h3>
+        <div class="sem">${d.semanas.map((s, i) => `<div class="${i === 7 ? 'hoy' : ''}" title="${mx(s.total)}"><i style="height:${s.total / maxS * 72}px"></i><span>${fCorta(s.ini).split(' ')[0]} ${fCorta(s.ini).split(' ')[1]}</span></div>`).join('')}</div>
+        <p class="hint">La barra naranja es esta semana, de sábado a viernes.</p>
+      </div>
+      <div class="card">
+        <h3>PACIENTES</h3>
+        <div class="tiles">
+          <div class="tile"><div class="k">Atendidos</div><div class="v num">${d.pacientes}</div></div>
+          <div class="tile"><div class="k">Nuevos</div><div class="v num pos">${d.nuevos}</div></div>
+          <div class="tile"><div class="k">Ticket prom.</div><div class="v num">${mx(d.ticket)}</div></div>
+        </div>
+        ${d.porTratamiento.length ? `<p class="hint">Lo más hecho: ${d.porTratamiento.map(t => `${esc(t[0])} (${t[1]})`).join(' · ')}</p>` : ''}
+      </div>
+      <div class="card"><h3>POR CONSULTORIO · ATENDIDO Y LO QUE TE QUEDA</h3>
+        ${d.porConsultorio.map(c => `<div class="catbar"><div class="h"><span>${esc(c[0])}</span><b>${mx(c[1])}</b></div><div class="bar"><i style="width:${c[1] / maxC * 100}%"></i></div><div class="hint" style="margin-top:4px">Te queda ${mx(c[2])} después de especialistas y consultorio</div></div>`).join('') || '<div class="vacio">Nada este mes</div>'}
+      </div>
+      <div class="card"><h3>CÓMO PAGARON</h3>
+        ${d.porMetodo.map(x => `<div class="fila"><span class="l">${esc(x[0])}</span><span class="v">${mx(x[1])}</span></div>`).join('') || '<div class="vacio">—</div>'}
+      </div>
+      <div class="card"><h3>PARA EL CONTADOR · ${MESES[+m - 1].toUpperCase()}</h3>
+        <div class="fila"><span class="l">Cobrado en efectivo</span><span class="v">${mx(d.fiscal.efectivo)}</span></div>
+        <div class="fila"><span class="l">Cobrado con tarjeta o transferencia</span><span class="v">${mx(d.fiscal.electronico)}</span></div>
+        ${d.fiscal.porConsultorio ? `<div class="fila"><span class="l">Lo cobró el consultorio</span><span class="v">${mx(d.fiscal.porConsultorio)}</span></div>` : ''}
+        <div class="fila"><span class="l">Con factura emitida</span><span class="v">${mx(d.fiscal.facturaEmitida)}</span></div>
+        <div class="fila"><span class="l">Gastos con factura (CFDI)</span><span class="v">${mx(d.fiscal.gastosConCfdi)}</span></div>
+        <div class="fila"><span class="l">Gastos sin factura</span><span class="v">${mx(d.fiscal.gastosSinCfdi)}</span></div>
+        ${d.fiscal.nFacturasPend ? `<div class="nota aviso">${plural(d.fiscal.nFacturasPend, 'factura pendiente', 'facturas pendientes')} de emitir. Están en Pendientes.</div>` : ''}
+        ${d.fiscal.nEfectivoMayor ? `<div class="nota aviso">${plural(d.fiscal.nEfectivoMayor, 'gasto', 'gastos')} en efectivo de más de ${mx(BOOT ? BOOT.limiteEfectivo : 2000)} (${mx(d.fiscal.montoEfectivoMayor)}). En efectivo arriba de esa cantidad no se pueden deducir.</div>` : ''}
+        ${estadoRep(d.reporte, y)}
+      </div>
+      <div class="card lista" id="gastosLista"><h3>GASTOS DEL MES · ${mx(d.gastos)}</h3>
+        ${d.listaGastos.map(g => `
+          <div class="it"><button class="row"><div class="i"><b>${esc(g.proveedor || g.nota || g.categoria)}</b><span>${fCorta(g.fecha)} · ${esc(g.categoria)}${g.metodo ? ' · ' + esc(g.metodo) : ''}${g.cfdi === 'Sí' ? ' · con factura' : g.cfdi === 'No' ? ' · sin factura' : ''}</span></div><div class="m">${mx(g.monto)}</div><span class="flecha">›</span></button>
+          <div class="det"><div class="notaTxt ${g.nota ? '' : 'vacia'}">${g.nota ? esc(g.nota) : 'Sin nota'}</div>
+            <div class="fila"><span class="l">Fecha</span><span class="v">${fLarga(g.fecha)}</span></div>
+            <div class="fila"><span class="l">Factura (CFDI)</span><span class="v">${g.cfdi || 'sin dato'} <button class="pill" data-cfdi="${g.fila}" data-v="${g.cfdi === 'Sí' ? 'No' : 'Sí'}">cambiar a ${g.cfdi === 'Sí' ? 'No' : 'Sí'}</button></span></div>
+            <button class="btn borrar" data-f="${g.fila}" data-m="${g.monto}" data-c="${esc(g.categoria)}">Borrar este gasto</button></div></div>`).join('') || '<div class="vacio">Sin gastos capturados este mes</div>'}
+      </div>`;
+    acordeon(box);
+    box.querySelectorAll('[data-sat]').forEach(b => b.onclick = () => elegirRegimen(b.dataset.sat));
+    box.querySelector('#btnReporte').onclick = async ev => {
+      const b = ev.currentTarget; let antes = b.textContent; b.disabled = true; b.textContent = 'Generando…';
+      try {
+        const r = await run('generarReporteAnual', +y);
+        if (r && r.url) { antes = `Volver a generar reporte ${y}`; toast(r.msg, () => window.open(r.url, '_blank'), false, 'Abrir'); if (d.reporte) { d.reporte = { anio: +y, existe: true, viejo: false, generado: 'ahora' }; b.closest('.card').querySelector('.repEstado').outerHTML = estadoRep(d.reporte, y, true); } }
+        else toast(r);
+      }
+      catch (e) { toast(e, null, true); }
+      finally { b.disabled = false; b.textContent = antes; }
+    };
+    box.querySelectorAll('button[data-cfdi]').forEach(b => b.onclick = async () => {
+      try { toast(await run('marcarCfdi', +b.dataset.cfdi, b.dataset.v)); cargarInicio(); }
+      catch (e) { toast(e, null, true); }
+    });
+    box.querySelectorAll('.btn.borrar').forEach(b => b.onclick = () => confirmar('¿Borrar este gasto?', async () => {
+      try { await run('borrarGasto', +b.dataset.f, +b.dataset.m, b.dataset.c); toast('Gasto eliminado'); cargarInicio(); }
+      catch (e) { toast(e, null, true); }
+    }));
+  }
+}
+
+function acordeon(box) {
+  box.querySelectorAll('.it .row').forEach(r => r.onclick = () => {
+    const it = r.parentElement, abierto = it.classList.contains('abierto');
+    box.querySelectorAll('.it.abierto').forEach(x => x.classList.remove('abierto'));
+    if (!abierto) it.classList.add('abierto');
+  });
+}
+function confirmar(txt, si) {
+  const m = modal(`<h4>${esc(txt)}</h4><button class="btn borrar" id="mSi" style="margin-top:4px">Sí, borrar</button><button class="btn sec" id="mNo">Cancelar</button>`);
+  m.querySelector('#mSi').onclick = () => { cerrarModal(); si(); };
+  m.querySelector('#mNo').onclick = cerrarModal;
+}
+
+/* ======================= PACIENTES ======================= */
+$('#pBuscar').oninput = () => pintarPacientes();
+function pintarPacientes() {
+  const box = $('#pLista');
+  if (!BOOT) {
+    if (bootError) {
+      box.innerHTML = `<b>No pude cargar los pacientes.</b><p class="hint">${esc(bootError)}</p><button class="btn sec" id="pReintentar">Reintentar</button>`;
+      box.querySelector('#pReintentar').onclick = () => { bootError = ''; pintarPacientes(); cargarBoot(); };
+    } else { box.innerHTML = '<div class="skel"></div><div class="skel" style="width:60%"></div><p class="hint">Cargando pacientes…</p>'; cargarBoot(); }
+    return;
+  }
+  const q = clave($('#pBuscar').value);
+  const lista = BOOT.pacientes.filter(p => !q || p.clave.includes(q)).slice(0, q ? 50 : 40);
+  box.innerHTML = `<h3>${q ? plural(lista.length, 'RESULTADO', 'RESULTADOS') : BOOT.pacientes.length + ' PACIENTES · ÚLTIMA VISITA PRIMERO'}</h3>` +
+    (lista.map(p => `
+      <div class="it"><button class="row" data-id="${p.id}">
+        <div class="avatar">${iniciales(p.nombre)}</div>
+        <div class="i"><b>${esc(p.nombre)}</b><span>${plural(p.visitas, 'visita', 'visitas')}${p.ultima ? ' · última ' + fCorta(p.ultima) : ''}${p.consultorio ? ' · ' + esc(p.consultorio) : ''}</span></div>
+        ${p.saldo > 0 ? `<span class="pill pend">debe ${mx(p.saldo)}</span>` : ''}<span class="flecha">›</span></button></div>`).join('')
+    || `<div class="vacio">${q ? 'Nadie con ese nombre. Al capturar su primer cobro se crea solo.' : 'Todavía no hay pacientes.'}</div>`);
+  box.querySelectorAll('.row').forEach(r => r.onclick = () => abrirFicha(r.dataset.id));
+}
+
+async function abrirFicha(id) {
+  ir('ficha');
+  const box = $('#ficha');
+  box.innerHTML = '<div class="card"><div class="skel"></div><div class="skel" style="width:60%"></div></div>';
+  try {
+    const p = await run('getPaciente', id);
+    const tel = p.tel ? p.tel.replace(/\D/g, '') : '';
+    box.innerHTML = `
+      <div class="card"><div class="ficha">
+        <div class="avatar">${iniciales(p.nombre)}</div>
+        <div style="min-width:0"><h2>${esc(p.nombre)}</h2>
+        <div class="meta">${p.consultorio ? esc(p.consultorio) + ' · ' : ''}${p.visitas.length ? 'desde ' + fCorta(p.visitas[p.visitas.length - 1].fecha) + ' · ' : ''}${plural(p.visitas.length, 'visita', 'visitas')}${p.tel ? ' · ' + esc(p.tel) : ''}</div></div></div>
+        <div class="tiles" style="margin-top:16px">
+          <div class="tile"><div class="k">Cobrado</div><div class="v num">${mx(p.cobrado)}</div></div>
+          <div class="tile"><div class="k">Pendiente</div><div class="v num ${p.saldo > 0 ? 'acento' : ''}">${mx(p.saldo)}</div></div>
+          <div class="tile"><div class="k">Total</div><div class="v num">${mx(p.total)}</div></div>
+        </div>
+        <div class="acciones">
+          <button class="btn" id="fCobrar">+ Cobro</button>
+          ${tel ? `<button class="btn sec" style="margin-top:0" onclick="window.open('https:\/\/wa.me/${tel.length === 10 ? lada() + tel : tel}','_blank')">WhatsApp</button>` : ''}
+          <button class="btn sec" style="margin-top:0" id="fEditar">Editar</button>
+        </div>
+        ${p.nota ? `<p class="hint">${esc(p.nota)}</p>` : ''}
+      </div>
+      <div class="card lista" id="fVisitas"><h3>HISTORIAL</h3>
+        ${p.visitas.map(c => `
+          <div class="it"><button class="row">
+            <div class="i"><b>${esc(c.tratamiento)}</b><span>${fCorta(c.fecha)} · ${esc(c.consultorio)}${c.especialista ? ' · con ' + esc(c.especialista) : ''}</span></div>
+            <div class="m">${mx(c.monto)}<small>${c.pagado ? esc(c.metodo || 'pagado') : '<span class="pill pend">pendiente</span>'}</small></div><span class="flecha">›</span></button>
+            <div class="det">
+              <div class="notaTxt ${c.nota ? '' : 'vacia'}">${c.nota ? esc(c.nota) : 'Sin nota'}</div>
+              <div class="fila"><span class="l">Fecha</span><span class="v">${fLarga(c.fecha)}</span></div>
+              ${c.pagado ? `<div class="fila"><span class="l">Pagó</span><span class="v">${esc(c.metodo || '—')} · ${fCorta(c.fechaPago)}</span></div>` : ''}
+              ${c.especialista ? `<div class="fila"><span class="l">${esc(c.especialista)}</span><span class="v">${mx(c.suCobro)} · ${c.lePague ? 'pagado' : 'por pagar'}</span></div>` : ''}
+              ${!c.pagado ? `<div class="cobrarBox" data-f="${c.fila}"></div>` : ''}
+              <button class="btn borrar" data-f="${c.fila}" data-m="${c.monto}" data-id="${p.id}">Borrar este cobro</button>
+            </div></div>`).join('') || '<div class="vacio">Sin visitas todavía</div>'}
+      </div>
+      <button class="btn sec" id="fUnir">Unir con otro paciente…</button>`;
+    acordeon(box);
+    box.querySelector('#fCobrar').onclick = () => ir('captura', { paciente: p });
+    box.querySelector('#fEditar').onclick = () => editarPaciente(p);
+    box.querySelector('#fUnir').onclick = () => unirPaciente(p);
+    box.querySelectorAll('.cobrarBox').forEach(c => cajaCobrar(c, () => abrirFicha(id)));
+    box.querySelectorAll('.btn.borrar').forEach(b => b.onclick = () => confirmar('¿Borrar este cobro?', async () => {
+      try { await run('borrarCobro', +b.dataset.f, +b.dataset.m, b.dataset.id); toast('Cobro eliminado'); cargarBoot(); abrirFicha(id); }
+      catch (e) { toast(e, null, true); }
+    }));
+  } catch (e) { box.innerHTML = `<div class="card"><b>No pude abrir la ficha.</b><p class="hint">${esc(e)}</p></div>`; }
+}
+$('#fBack').onclick = () => ir('pacientes');
+
+/** Caja "¿cómo pagó?" + Confirmar, para marcar un cobro pendiente como cobrado. */
+function cajaCobrar(cont, despues) {
+  const metodos = BOOT ? BOOT.metodosCobro : ['Terminal', 'Efectivo', 'Transferencia'];
+  let met = leeLocal('metodo', metodos[0]);
+  if (!metodos.includes(met)) met = metodos[0];      // "Después" no es forma de pago
+  cont.innerHTML = `<div class="chips"></div><button class="btn cempa" style="margin-top:0;padding:12px">Ya me pagó</button>`;
+  chips(cont.querySelector('.chips'), metodos, met, v => met = v);
+  cont.querySelector('.btn').onclick = async () => {
+    try { const r = await run('marcarPagado', +cont.dataset.f, met, hoy()); toast(r); guardaLocal('metodo', met); cargarBoot(); despues(); }
+    catch (e) { toast(e, null, true); }
+  };
+}
+
+function editarPaciente(p) {
+  const m = modal(`<h4>Editar paciente</h4>
+    <label class="t" style="margin-top:0">Nombre</label><input class="campo" id="eNom" value="${esc(p.nombre)}" autocapitalize="words" readonly data-tx="Nombre">
+    <label class="t">Teléfono <span>(opcional, para WhatsApp)</span></label><input class="campo" id="eTel" inputmode="tel" value="${esc(p.tel)}" readonly data-tx="Teléfono">
+    <label class="t">Nota <span>(sin datos clínicos)</span></label><input class="campo" id="eNota" value="${esc(p.nota)}" readonly data-tx="Nota">
+    <button class="btn" id="eOk">Guardar</button><button class="btn sec" id="eNo">Cancelar</button>`);
+  m.querySelector('#eNo').onclick = cerrarModal;
+  m.querySelector('#eOk').onclick = async () => {
+    try { await run('actualizarPaciente', p.id, { nombre: m.querySelector('#eNom').value, tel: m.querySelector('#eTel').value, nota: m.querySelector('#eNota').value }); cerrarModal(); toast('Guardado'); cargarBoot(); abrirFicha(p.id); }
+    catch (e) { toast(e, null, true); }
+  };
+}
+
+function unirPaciente(p) {
+  const otros = BOOT.pacientes.filter(x => x.id !== p.id);
+  const m = modal(`<h4>¿Con quién se une ${esc(p.nombre)}?</h4><p class="hint" style="margin:0 0 10px">Sus ${plural(p.visitas.length, 'visita', 'visitas')} pasan a la otra ficha y esta desaparece.</p>
+    <input class="campo" id="uBuscar" placeholder="Buscar…" autocomplete="off" inputmode="${TACTIL ? 'none' : 'text'}"><div class="lista" id="uLista" style="margin-top:8px"></div>
+    <button class="btn sec" id="uNo">Cancelar</button>`);
+  const pinta = () => {
+    const q = clave(m.querySelector('#uBuscar').value);
+    const l = otros.filter(x => !q || x.clave.includes(q)).slice(0, 8);
+    m.querySelector('#uLista').innerHTML = l.map(x => `<div class="it"><button class="row" data-id="${x.id}"><div class="i"><b>${esc(x.nombre)}</b><span>${plural(x.visitas, 'visita', 'visitas')}${x.consultorio ? ' · ' + esc(x.consultorio) : ''}</span></div></button></div>`).join('') || '<div class="vacio">Nadie</div>';
+    m.querySelectorAll('.row').forEach(r => r.onclick = () => {
+      const hacia = otros.find(x => x.id === r.dataset.id);
+      confirmar(`¿Unir con ${hacia.nombre}?`, async () => {
+        try { const msg = await run('fusionarPacientes', p.id, hacia.id); toast(msg); await cargarBoot(); abrirFicha(hacia.id); }
+        catch (e) { toast(e, null, true); }
+      });
+      m.querySelector('#mSi').textContent = 'Sí, unir';
+    });
+  };
+  m.querySelector('#uBuscar').oninput = pinta; pinta();
+  m.querySelector('#uNo').onclick = cerrarModal;
+}
+
+/* ======================= CAPTURA ======================= */
+let modo = 'cobro';
+const C = { id: '', nombre: '', consultorio: '', tratamiento: '', metodo: 'Terminal', pagado: true, especialista: '', lePague: false, fecha: 'hoy', quien: 'Yo', factura: 'No requiere' };
+const G = { categoria: '', metodo: 'Tarjeta', fecha: 'hoy', cfdi: 'Sí' };
+let montoAuto = false;
+
+$('#segCobro').onclick = () => setModo('cobro');
+$('#segGasto').onclick = () => setModo('gasto');
+function setModo(m) {
+  modo = m;
+  $('#segCobro').classList.toggle('on', m === 'cobro'); $('#segGasto').classList.toggle('on', m === 'gasto');
+  $('#fCobro').hidden = m !== 'cobro'; $('#fGasto').hidden = m !== 'gasto';
+  document.querySelector('nav.tabs .mas').setAttribute('aria-label', m === 'cobro' ? 'Guardar cobro' : 'Guardar gasto');
+}
+
+let capturaLista = false;
+function prepCaptura(opts) {
+  if (!BOOT) { cargarBoot(); return; }
+  capturaLista = true;
+  C.metodo = leeLocal('metodo', BOOT.metodosCobro[0] || 'Terminal');
+  if (C.metodo !== 'Después' && !BOOT.metodosCobro.includes(C.metodo)) C.metodo = BOOT.metodosCobro[0];
+  C.pagado = C.metodo !== 'Después';
+  if (!C.consultorio) C.consultorio = leeLocal('consultorio', BOOT.consultorios[0] || '');
+  C.quien = leeLocal('quien.' + clave(C.consultorio), 'Yo');
+  G.metodo = leeLocal('gmetodo', BOOT.metodosGasto[0] || 'Tarjeta');
+  if (!BOOT.metodosGasto.includes(G.metodo)) G.metodo = BOOT.metodosGasto[0];
+  G.cfdi = leeLocal('gcfdi', 'Sí');
+  if (opts && opts.paciente) { setModo('cobro'); elegirPaciente(BOOT.pacientes.find(x => x.id === opts.paciente.id) || { id: opts.paciente.id, nombre: opts.paciente.nombre, visitas: 0 }); }
+  pintarCobro(); pintarGasto();
+}
+
+/* ---- paciente con autocompletar ---- */
+$('#cNombre').oninput = () => {
+  C.id = ''; C.nombre = $('#cNombre').value;
+  const q = clave(C.nombre);
+  const box = $('#cSug');
+  if (!q || !BOOT) { box.hidden = true; return; }
+  const l = BOOT.pacientes.filter(p => p.clave.includes(q)).slice(0, 6);
+  const exacto = l.some(p => p.clave === q);
+  box.innerHTML = l.map(p => `<button data-id="${p.id}"><b>${esc(p.nombre)}</b><span>${plural(p.visitas, 'visita', 'visitas')}${p.consultorio ? ' · ' + esc(p.consultorio) : ''}${p.saldo > 0 ? ' · debe ' + mx(p.saldo) : ''}</span></button>`).join('')
+    + (exacto ? '' : `<button class="nuevo" data-id=""><b>+ Nuevo: ${esc(C.nombre.trim())}</b><span>se crea solo</span></button>`);
+  box.hidden = false;
+  box.querySelectorAll('button').forEach(b => b.onclick = () => {
+    if (b.dataset.id) elegirPaciente(BOOT.pacientes.find(p => p.id === b.dataset.id));
+    else { C.id = ''; C.nombre = C.nombre.trim(); $('#cNombre').value = C.nombre; box.hidden = true; mostrarPacSel({ id: '', nombre: C.nombre, visitas: 0 }); }
+  });
+};
+function elegirPaciente(p) {
+  C.id = p.id; C.nombre = p.nombre;
+  $('#cNombre').value = p.nombre; $('#cSug').hidden = true;
+  if (p.consultorio) C.consultorio = p.consultorio;
+  if (p.ultTrat && !C.tratamiento) C.tratamiento = p.ultTrat;
+  mostrarPacSel(p);
+  pintarCobro(); sugerirPrecio();
+}
+function mostrarPacSel(p) {
+  $('#cNombre').hidden = true;
+  $('#cPacSel').hidden = false;
+  $('#cPacNom').textContent = p.nombre;
+  $('#cPacInfo').textContent = p.id ? `${plural(p.visitas, 'visita', 'visitas')}${p.ultima ? ' · última ' + fCorta(p.ultima) : ''}${p.saldo > 0 ? ' · debe ' + mx(p.saldo) : ''}` : 'Paciente nuevo · se crea al guardar';
+  $('#cTel').hidden = !!p.id;
+  if (p.id) $('#cTel').value = '';
+}
+$('#cPacQuitar').onclick = () => { C.id = ''; C.nombre = ''; $('#cNombre').value = ''; $('#cNombre').hidden = false; $('#cPacSel').hidden = true; $('#cTel').hidden = true; $('#cTel').value = ''; abrirCampo($('#cNombre')); };
+
+function sugerirPrecio() {
+  if (!BOOT || !C.tratamiento) return;
+  const t = clave(C.tratamiento), tc = t + '|' + clave(C.consultorio);
+  const p = BOOT.precios[tc] || BOOT.precios[t];
+  const inp = $('#cMonto');
+  if (p && (montoAuto || !inp.value)) { inp.value = fmtMonto(p); montoAuto = true; inp.classList.add('auto'); $('#cMontoHint').textContent = '· precio de la última vez, edítalo si cambió'; }
+  else if (!p && montoAuto) { inp.value = ''; montoAuto = false; inp.classList.remove('auto'); $('#cMontoHint').textContent = ''; }   // el precio era de otro tratamiento
+  if (C.especialista) {
+    const e = clave(C.especialista);
+    const s = BOOT.espTrat[e + '|' + t] || BOOT.esp[e];
+    if (s && !$('#cSuCobro').value) $('#cSuCobro').value = fmtMonto(s);
+  }
+  pintarParte();
+}
+$('#cMonto').oninput = () => { montoAuto = false; $('#cMonto').classList.remove('auto'); $('#cMontoHint').textContent = ''; pintarParte(); };
+$('#cFisBtn').onclick = () => { $('#cFisBox').hidden = !$('#cFisBox').hidden; };
+
+function pintarCobro() {
+  selectOpts($('#cCons'), BOOT.consultorios, C.consultorio, v => { C.consultorio = v; guardaLocal('consultorio', v); C.quien = leeLocal('quien.' + clave(v), 'Yo'); sugerirPrecio(); pintarFiscal(); }, 'consultorios', '¿En qué consultorio?');
+  selectOpts($('#cTrat'), BOOT.tratamientos, C.tratamiento, v => { C.tratamiento = v; sugerirPrecio(); }, 'tratamientos', '¿Qué se le hizo?');
+  chips($('#cMet'), BOOT.metodosCobro.concat(['Después']), C.pagado ? C.metodo : 'Después', v => { C.pagado = v !== 'Después'; if (C.pagado) C.metodo = v; });
+  selectOpts($('#cEsp'), BOOT.especialistas, C.especialista, v => { C.especialista = v; $('#cSuCobro').value = ''; sugerirPrecio(); $('#cEspBtn').textContent = '− ' + v; }, 'especialistas', '¿Quién atendió?');
+  chips($('#cFechaChips'), ['Hoy', 'Ayer', 'Otra'], C.fecha === 'hoy' ? 'Hoy' : C.fecha === 'ayer' ? 'Ayer' : 'Otra', v => fechaChip('c', v));
+  $('#cEspBtn').textContent = C.especialista ? '− ' + C.especialista : '+ Especialista';
+  pintarFiscal();
+}
+function pintarFiscal() {
+  chips($('#cQuien'), ['Yo', 'El consultorio'], C.quien === 'Consultorio' ? 'El consultorio' : 'Yo', v => { C.quien = v === 'Yo' ? 'Yo' : 'Consultorio'; guardaLocal('quien.' + clave(C.consultorio), C.quien); pintarParte(); resumenFiscal(); });
+  chips($('#cFact'), ['No requiere', 'Pendiente', 'Emitida'], C.factura, v => { C.factura = v; resumenFiscal(); });
+  pintarParte(); resumenFiscal();
+}
+function calcQueda() {
+  const monto = numDe($('#cMonto').value), pct = C.consultorio ? pctDe(C.consultorio) : 0;
+  const parte = Math.round(monto * pct) / 100, su = C.especialista ? numDe($('#cSuCobro').value) : 0;
+  const d = [];
+  if (su) d.push((C.especialista || 'especialista') + ' ' + mx(su));
+  if (parte) d.push(C.consultorio + ' ' + mx(parte));
+  return { monto, queda: monto - su - parte, descuentos: d.join(' y ') };
+}
+function pintarQueda() {
+  const q = calcQueda();
+  $('#cQueda').hidden = !(q.monto > 0 && q.descuentos);
+  if (q.monto > 0 && q.descuentos) { $('#cQuedaTxt').textContent = 'Te queda, después de ' + q.descuentos; $('#cQuedaV').textContent = mx(q.queda); }
+  if (KP.inp) kpAyuda();
+}
+function pintarParte() {
+  const pct = C.consultorio ? pctDe(C.consultorio) : 0, monto = numDe($('#cMonto').value);
+  const parte = Math.round(monto * pct) / 100;
+  pintarQueda();
+  $('#cParteHint').textContent = !C.consultorio ? '' : pct
+    ? `${C.consultorio} se queda ${pct}%${monto ? ' = ' + mx(parte) : ''}. ${C.quien === 'Consultorio' ? 'Te debe el resto; queda en Pendientes hasta que liquiden.' : 'Se lo debes; queda en Pendientes hasta que liquiden.'}`
+    : (C.quien === 'Consultorio' ? `${C.consultorio} te debe el cobro completo; queda en Pendientes hasta que liquiden.` : `${C.consultorio} no se queda %. Cámbialo en Catálogos si aplica.`);
+}
+function resumenFiscal() {
+  const partes = [];
+  if (C.quien === 'Consultorio') partes.push('cobró el consultorio');
+  if (C.factura !== 'No requiere') partes.push('factura ' + C.factura.toLowerCase());
+  $('#cFisBtn').textContent = partes.length ? 'Factura y quién cobró · ' + partes.join(' · ') : 'Factura y quién cobró';
+}
+function fechaChip(pref, v) {
+  const o = pref === 'c' ? C : G, inp = $('#' + pref + 'Fecha');
+  o.fecha = v === 'Hoy' ? 'hoy' : v === 'Ayer' ? 'ayer' : 'otra';
+  inp.hidden = o.fecha !== 'otra';
+  if (o.fecha === 'otra') { if (!inp.value) inp.value = hoy(); inp.focus(); }
+}
+const fechaDe = (pref) => { const o = pref === 'c' ? C : G; return o.fecha === 'hoy' ? hoy() : o.fecha === 'ayer' ? ayer() : ($('#' + pref + 'Fecha').value || hoy()); };
+$('#cEspBtn').onclick = () => {
+  const box = $('#cEspBox');
+  if (!box.hidden && C.especialista) { C.especialista = ''; $('#cSuCobro').value = ''; C.lePague = false; $('#cLePague').classList.remove('on'); pintarCobro(); }
+  box.hidden = !box.hidden;
+};
+$('#cSuCobro').addEventListener('input', pintarQueda);
+$('#cLePague').onclick = () => { C.lePague = !C.lePague; $('#cLePague').classList.toggle('on', C.lePague); $('#cLePague').setAttribute('aria-pressed', C.lePague); };
+
+let guardando = false;
+async function guardarCobro() {
+  if (guardando) return;
+  if (!C.id && !clave(C.nombre)) return falta($('#cNombre'), 'Falta el paciente');
+  if (!C.consultorio) return falta($('#cCons'), 'Elige el consultorio');
+  if (!C.tratamiento) return falta($('#cTrat'), 'Elige el tratamiento');
+  const monto = numDe($('#cMonto').value);
+  if (!(monto > 0)) return falta($('#cMonto'), 'Falta el monto');
+  const suCobro = C.especialista ? numDe($('#cSuCobro').value) : 0;
+  if (C.especialista && suCobro > monto) return toast('La parte del especialista es mayor que el cobro', null, true);
+  if (suCobro + Math.round(monto * pctDe(C.consultorio)) / 100 > monto) return toast('Especialista y consultorio suman más que el cobro', null, true);
+  guardando = true; bloquear(true);
+  try {
+    if (!C.clave) C.clave = nuevaClave();
+    const r = await runT(25000, 'guardarCobro', { clave: C.clave, id: C.id, nombre: C.nombre, consultorio: C.consultorio, tratamiento: C.tratamiento, monto,
+      pagado: C.pagado, metodo: C.metodo, especialista: C.especialista, suCobro, lePague: C.lePague, fecha: fechaDe('c'), nota: $('#cNota').value.trim(),
+      quien: C.quien, factura: C.factura,
+      tel: C.id ? '' : $('#cTel').value.trim() });
+    guardaLocal('metodo', C.pagado ? C.metodo : 'Después'); guardaLocal('consultorio', C.consultorio);
+    toast(`${mx(monto)} · ${r.nombre}${r.nuevo ? ' (nuevo)' : ''}${C.pagado ? '' : ' · pendiente'}${r.parteCons ? ' · consultorio ' + mx(r.parteCons) : ''}`, async () => {
+      try { await run('borrarCobro', r.fila, r.monto, r.id); toast('Cobro eliminado'); cargarBoot(); } catch (e) { toast(e, null, true); }
+    });
+    limpiarCobro();
+    cargarBoot();
+  } catch (e) { toast(e, null, true); }
+  finally { guardando = false; bloquear(false); }
+}
+function limpiarCobro() {
+  C.clave = ''; C.id = ''; C.nombre = ''; C.tratamiento = ''; C.especialista = ''; C.lePague = false; C.fecha = 'hoy'; C.factura = 'No requiere';
+  C.quien = leeLocal('quien.' + clave(C.consultorio), 'Yo'); $('#cFisBox').hidden = true;
+  $('#cNombre').value = ''; $('#cNombre').hidden = false; $('#cPacSel').hidden = true; $('#cSug').hidden = true; $('#cTel').hidden = true; $('#cTel').value = '';
+  $('#cMonto').value = ''; $('#cMonto').classList.remove('auto'); $('#cMontoHint').textContent = ''; montoAuto = false;
+  $('#cSuCobro').value = ''; $('#cLePague').classList.remove('on'); $('#cEspBox').hidden = true; $('#cNota').value = ''; $('#cFecha').hidden = true;
+  pintarCobro(); arriba();
+}
+function bloquear(on) {
+  [$('#cGuardar'), $('#gGuardar'), document.querySelector('nav.tabs .mas')].forEach(b => b.disabled = on);
+  $('#cGuardar').textContent = on ? 'Guardando…' : 'Guardar cobro';
+  $('#gGuardar').textContent = on ? 'Guardando…' : 'Guardar gasto';
+  if (on && document.activeElement) document.activeElement.blur();
+}
+$('#cGuardar').onclick = guardarCobro;
+/* si cambias algo después de un intento fallido, es otro movimiento: clave nueva */
+['input', 'change'].forEach(ev => {
+  $('#fCobro').addEventListener(ev, () => { if (!guardando) C.clave = ''; });
+  $('#fGasto').addEventListener(ev, () => { if (!guardando) G.clave = ''; });
+});
+$('#fCobro').addEventListener('click', e => { if (!guardando && e.target.closest('.chip, .sw')) C.clave = ''; });
+$('#fGasto').addEventListener('click', e => { if (!guardando && e.target.closest('.chip')) G.clave = ''; });
+
+/* ---- gasto ---- */
+function pintarGasto() {
+  selectOpts($('#gCat'), BOOT.categoriasGasto, G.categoria, v => G.categoria = v, 'categoriasGasto', '¿De qué es el gasto?');
+  chips($('#gMet'), BOOT.metodosGasto, G.metodo, v => { G.metodo = v; guardaLocal('gmetodo', v); avisoGasto(); });
+  chips($('#gCfdi'), ['Sí', 'No'], G.cfdi, v => { G.cfdi = v; guardaLocal('gcfdi', v); });
+  avisoGasto();
+  chips($('#gFechaChips'), ['Hoy', 'Ayer', 'Otra'], G.fecha === 'hoy' ? 'Hoy' : G.fecha === 'ayer' ? 'Ayer' : 'Otra', v => fechaChip('g', v));
+  $('#gProvList').innerHTML = BOOT.proveedores.map(p => `<option value="${esc(p)}">`).join('');
+  const f = $('#gFijos'); f.innerHTML = '';
+  $('#gFijosWrap').hidden = !BOOT.fijos.length;
+  BOOT.fijos.forEach(x => {
+    const b = document.createElement('button');
+    b.innerHTML = `<b>${esc(x.proveedor || x.nota || x.categoria)}</b><span>${esc(x.categoria)} · ${mx(x.ultimo)}</span>`;
+    b.onclick = () => { G.categoria = x.categoria; if (x.metodo) G.metodo = x.metodo; if (x.cfdi) G.cfdi = x.cfdi; $('#gProv').value = x.proveedor || ''; $('#gNota').value = x.nota || ''; $('#gMonto').value = fmtMonto(x.ultimo); pintarGasto(); avisoGasto(); };
+    f.appendChild(b);
+  });
+}
+function avisoGasto() {
+  const lim = (BOOT && BOOT.limiteEfectivo) || 2000, monto = numDe($('#gMonto').value);
+  const ef = clave(G.metodo) === 'efectivo' && monto > lim;
+  $('#gAviso').hidden = !ef;
+  if (ef) $('#gAviso').textContent = `En efectivo, un gasto de más de ${mx(lim)} no se puede deducir. Si puedes, págalo con tarjeta o transferencia.`;
+}
+$('#gMonto').addEventListener('input', avisoGasto);
+async function guardarGasto() {
+  if (guardando) return;
+  const monto = numDe($('#gMonto').value);
+  if (!(monto > 0)) return falta($('#gMonto'), 'Falta el monto');
+  if (!G.categoria) return falta($('#gCat'), 'Elige una categoría');
+  guardando = true; bloquear(true);
+  try {
+    if (!G.clave) G.clave = nuevaClave();
+    const r = await runT(25000, 'guardarGasto', { clave: G.clave, monto, categoria: G.categoria, proveedor: $('#gProv').value.trim(), metodo: G.metodo, cfdi: G.cfdi, fecha: fechaDe('g'), nota: $('#gNota').value.trim() });
+    toast(`${mx(monto)} en ${r.categoria} · guardado${r.aviso ? ' · en efectivo no es deducible' : ''}`, async () => {
+      try { await run('borrarGasto', r.fila, r.monto, r.categoria); toast('Gasto eliminado'); } catch (e) { toast(e, null, true); }
+    });
+    G.clave = ''; $('#gMonto').value = ''; $('#gProv').value = ''; $('#gNota').value = ''; G.categoria = ''; G.fecha = 'hoy'; $('#gFecha').hidden = true; G.cfdi = leeLocal('gcfdi', 'Sí');
+    pintarGasto(); arriba(); cargarBoot();
+  } catch (e) { toast(e, null, true); }
+  finally { guardando = false; bloquear(false); }
+}
+$('#gGuardar').onclick = guardarGasto;
+
+/* ======================= PENDIENTES ======================= */
+async function cargarPendientes() {
+  const box = $('#pendientes');
+  const c = cacheGet('pendientes');
+  if (c) pintarPendientes(c);
+  box.classList.add('cargando');
+  try {
+    const d = await run('getPendientes');
+    cacheSet('pendientes', d);
+    pintarPendientes(d);
+  } catch (e) {
+    if (!c) box.innerHTML = `<div class="card"><b>No pude cargar los pendientes.</b><p class="hint">${esc(e)}</p></div>`;
+    else toast('Sin conexión; mostrando lo último que vi', null, true);
+  } finally { box.classList.remove('cargando'); }
+}
+/** Botón de recordatorio por WhatsApp si el paciente tiene teléfono en el Directorio. */
+function linkRecordatorio(c) {
+  const p = BOOT && BOOT.pacientes.find(x => x.id === c.id);
+  let tel = p && String(p.tel || '').replace(/\D/g, '');
+  if (!tel || tel.length < 10) return '';
+  if (tel.length === 10) tel = lada() + tel;
+  const msg = `Hola ${p.nombre.split(' ')[0]}, le saluda ${firma()}. Le recuerdo que queda pendiente el pago de ${mx(c.monto)} de su ${c.tratamiento.toLowerCase()} del ${fCorta(c.fecha)}. ¿Me confirma cuándo lo podría cubrir? ¡Gracias!`;
+  return `<button class="btn sec" style="margin-top:8px;padding:12px" onclick="window.open('https:\/\/wa.me/${tel}?text=${encodeURIComponent(msg)}','_blank')">Recordar por WhatsApp</button>`;
+}
+let ultimoPend = null;
+function pintarPendientes(d) {
+  const box = $('#pendientes');
+  ultimoPend = d;
+  if (!BOOT && !bootCargando) cargarBoot();   // para los teléfonos (al llegar, se repinta)
+  {
+    box.innerHTML = `
+      <div class="card lista"><h3>POR COBRAR · ${mx(d.totalPorCobrar)} EN ${plural(d.porCobrar.length, 'CONSULTA', 'CONSULTAS')}</h3>
+        ${d.porCobrar.map(c => `
+          <div class="it"><button class="row"><div class="i"><b>${esc(c.nombre)}</b><span>${esc(c.tratamiento)} · ${esc(c.consultorio)} · ${fCorta(c.fecha)}</span></div>
+            <div class="m">${mx(c.monto)}<small>${c.dias === 0 ? 'hoy' : plural(c.dias, 'día', 'días')}</small></div><span class="flecha">›</span></button>
+            <div class="det">${c.nota ? `<div class="notaTxt">${esc(c.nota)}</div>` : ''}<div class="cobrarBox" data-f="${c.fila}"></div>${linkRecordatorio(c)}</div></div>`).join('')
+        || '<div class="vacio">Sin pendientes. Todo cobrado ✓</div>'}
+      </div>
+      <div class="card"><h3>LE DEBO A ESPECIALISTAS</h3>
+        ${d.especialistas.map((e, i) => `
+          <div class="fila" style="align-items:center"><div><span class="l" style="font-weight:600;color:var(--tinta)">${esc(e.especialista)}</span><div class="hint" style="margin-top:2px">${e.casos.map(c => esc(c.nombre) + ' ' + mx(c.suCobro)).join(' · ')}</div></div>
+            <div style="text-align:right"><div class="v num">${mx(e.total)}</div><button class="chip" style="margin-top:6px;padding:8px 12px;min-height:40px;white-space:nowrap" data-i="${i}">Ya le pagué</button></div></div>`).join('')
+        || '<div class="vacio">Todo al día con los especialistas ✓</div>'}
+      </div>
+      <div class="card"><h3>CONSULTORIOS · SALDO SIN LIQUIDAR</h3>
+        ${d.consultorios.map((c, i) => `
+          <div class="fila" style="align-items:center"><div><span class="l" style="font-weight:600;color:var(--tinta)">${esc(c.consultorio)}</span><div class="hint" style="margin-top:2px">${plural(c.casos, 'cobro', 'cobros')} · ${c.saldo > 0 ? 'te debe' : c.saldo < 0 ? 'le debes' : 'quedan a mano'}</div></div>
+            <div style="text-align:right"><div class="v num ${c.saldo > 0 ? 'pos' : ''}">${mx(Math.abs(c.saldo))}</div><button class="chip" style="margin-top:6px;padding:8px 12px;min-height:40px;white-space:nowrap" data-liq="${i}">Ya liquidamos</button></div></div>`).join('')
+        || '<div class="vacio">Al día con los consultorios ✓</div>'}
+      </div>
+      <div class="card"><h3>FACTURAS PENDIENTES DE EMITIR · ${d.facturas.length}</h3>
+        ${d.facturas.map((f, i) => `
+          <div class="fila" style="align-items:center"><div><span class="l" style="font-weight:600;color:var(--tinta)">${esc(f.nombre)}</span><div class="hint" style="margin-top:2px">${fCorta(f.fecha)}${f.metodo ? ' · ' + esc(f.metodo) : ''}${f.pagado ? '' : ' · aún no paga'}</div></div>
+            <div style="text-align:right"><div class="v num">${mx(f.monto)}</div><button class="chip" style="margin-top:6px;padding:8px 12px;min-height:40px;white-space:nowrap" data-fac="${i}">Ya la emití</button></div></div>`).join('')
+        || '<div class="vacio">Ninguna factura pendiente ✓</div>'}
+      </div>
+      <div class="card"><h3>POR CONCILIAR CON EL BANCO</h3>
+        <p class="hint" style="margin:-4px 0 6px">Cobros con tarjeta o transferencia que cobraste tú, agrupados por día. Cuando veas el depósito en tu banco, márcalo.</p>
+        ${d.porConciliar.map((g, i) => `
+          <div class="fila" style="align-items:center"><div><span class="l" style="font-weight:600;color:var(--tinta)">${fCorta(g.fecha)} · ${esc(g.metodo)}</span><div class="hint" style="margin-top:2px">${plural(g.n, 'cobro', 'cobros')}</div></div>
+            <div style="text-align:right"><div class="v num">${mx(g.total)}</div><button class="chip" style="margin-top:6px;padding:8px 12px;min-height:40px;white-space:nowrap" data-con="${i}">✓ Llegó</button></div></div>`).join('')
+        || '<div class="vacio">Todo conciliado ✓</div>'}
+      </div>
+      ${d.terminalHoy > 0 ? `<div class="card"><h3>TERMINAL DE HOY</h3><div class="fila"><span class="l">Se deposita mañana</span><span class="v">${mx(d.terminalHoy)}</span></div></div>` : ''}
+      ${d.sinFecha > 0 ? `<div class="nota aviso">${plural(d.sinFecha, 'cobro tiene', 'cobros tienen')} la fecha incompleta o están pagados sin fecha de pago. No entran en el reporte del contador; se arreglan en la hoja Cobros, columnas A y G.</div>` : ''}`;
+    acordeon(box);
+    box.querySelectorAll('.cobrarBox').forEach(c => cajaCobrar(c, cargarPendientes));
+    const marcar = (fn, filas, ...extra) => async () => {
+      try { toast(await run(fn, filas, ...extra)); cargarPendientes(); }
+      catch (err) { toast(err, null, true); }
+    };
+    box.querySelectorAll('button[data-liq]').forEach(b => b.onclick = () => {
+      const c = d.consultorios[+b.dataset.liq];
+      const m = modal(`<h4>¿Ya liquidaste con ${esc(c.consultorio)}?</h4><p class="hint" style="margin:0 0 10px">${c.saldo > 0 ? 'Te pagaron' : c.saldo < 0 ? 'Les pagaste' : 'Quedaron a mano en'} ${mx(Math.abs(c.saldo))} por ${plural(c.casos, 'cobro', 'cobros')}.</p>
+        <button class="btn" id="mSi">Sí, ya liquidamos</button><button class="btn sec" id="mNo">Todavía no</button>`);
+      m.querySelector('#mNo').onclick = cerrarModal;
+      m.querySelector('#mSi').onclick = () => { cerrarModal(); marcar('marcarLiquidado', c.filas)(); };
+    });
+    box.querySelectorAll('button[data-fac]').forEach(b => b.onclick = marcar('marcarFactura', [d.facturas[+b.dataset.fac].fila], 'Emitida'));
+    box.querySelectorAll('button[data-con]').forEach(b => b.onclick = marcar('marcarConciliado', d.porConciliar[+b.dataset.con].filas));
+    box.querySelectorAll('button[data-i]').forEach(b => b.onclick = () => {
+      const e = d.especialistas[+b.dataset.i];
+      const m = modal(`<h4>¿Ya le pagaste ${mx(e.total)} a ${esc(e.especialista)}?</h4><p class="hint" style="margin:0 0 10px">${plural(e.casos.length, 'caso', 'casos')}: ${e.casos.map(c => esc(c.nombre)).join(', ')}.</p>
+        <button class="btn" id="mSi">Sí, ya le pagué</button><button class="btn sec" id="mNo">Todavía no</button>`);
+      m.querySelector('#mNo').onclick = cerrarModal;
+      m.querySelector('#mSi').onclick = async () => {
+        try { const r = await run('marcarPagoEspecialista', e.casos.map(c => c.fila)); cerrarModal(); toast(r); cargarPendientes(); }
+        catch (err) { toast(err, null, true); }
+      };
+    });
+  }
+}
+
+/* ======================= arranque ======================= */
+(function () { try { const m = JSON.parse(localStorage.getItem('cons.marca') || 'null'); if (m) { $('.brand .n').textContent = m.nombre; $('.brand .e').textContent = m.especialidad; $('.mono').textContent = m.iniciales; } } catch (e) {} })();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+/* versión */
+const VISTA_INICIAL = new URLSearchParams(location.search).get('v') || 'inicio';
+cargarBoot().then(() => { if (vista === 'captura') prepCaptura(); });
+ir(['inicio', 'pacientes', 'captura', 'pendientes'].includes(VISTA_INICIAL) ? VISTA_INICIAL : 'inicio');
+</script>
+</body>
+</html>
