@@ -1120,7 +1120,46 @@ function pintarMarca() {
   if (!BOOT || !BOOT.marca) return;
   $('.brand .n').textContent = BOOT.marca.nombre; $('.brand .e').textContent = BOOT.marca.especialidad; $('.mono').textContent = BOOT.marca.iniciales;
   if (BOOT.version) $('#verApp').textContent = BOOT.version;
+  if (BOOT.configurado === false) return;
   try { localStorage.setItem('cons.marca', JSON.stringify(BOOT.marca)); } catch (e) {}
+  iconoMarca(BOOT.marca);
+}
+/* Ícono de la app con las iniciales de la doctora (mismo estilo: azul, aro dorado). Se dibuja en el teléfono;
+   el iPhone lo toma al tocar "Agregar a pantalla de inicio". */
+let iconoHecho = '';
+async function iconoMarca(m) {
+  const ini = String((m && m.iniciales) || '').trim();
+  if (!ini || ini === '·' || ini === iconoHecho) return;
+  iconoHecho = ini;
+  try { await document.fonts.load('400 100px "Instrument Serif"'); } catch (e) {}
+  const dibujar = (n, mask) => {
+    const c = document.createElement('canvas'); c.width = c.height = n;
+    const x = c.getContext('2d');
+    x.fillStyle = '#14233A'; x.fillRect(0, 0, n, n);
+    const pad = n * (mask ? 0.2 : 0.14);
+    x.strokeStyle = '#C9972B'; x.lineWidth = Math.max(2, n * 0.012);
+    x.beginPath(); x.arc(n / 2, n / 2, n / 2 - pad, 0, Math.PI * 2); x.stroke();
+    const t = ini.slice(0, 3), base = t.length === 1 ? 0.46 : t.length === 2 ? 0.38 : 0.28;
+    let tam = n * base * (mask ? 0.86 : 1);
+    x.fillStyle = '#E9C77A'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    x.font = `400 ${tam}px "Instrument Serif", Georgia, serif`;
+    const ancho = n - pad * 2 - n * 0.12;
+    while (x.measureText(t).width > ancho && tam > 10) { tam -= 2; x.font = `400 ${tam}px "Instrument Serif", Georgia, serif`; }
+    const mt = x.measureText(t), alto = (mt.actualBoundingBoxAscent || tam * 0.7) - (mt.actualBoundingBoxDescent || 0);
+    x.fillText(t, n / 2, n / 2 + alto / 2);
+    return c.toDataURL('image/png');
+  };
+  try {
+    const poner = (sel, url) => { const l = document.querySelector(sel); if (l) l.href = url; };
+    poner('link[rel="apple-touch-icon"]', dibujar(180));
+    poner('link[rel="icon"]', dibujar(64));
+    const dir = location.origin + location.pathname.replace(/[^/]*$/, '');
+    const man = { name: 'Consultorio', short_name: 'Consultorio', start_url: dir, scope: dir, display: 'standalone', orientation: 'portrait',
+      background_color: '#14233A', theme_color: '#14233A', lang: 'es-MX',
+      icons: [{ src: dibujar(192), sizes: '192x192', type: 'image/png' }, { src: dibujar(512), sizes: '512x512', type: 'image/png' },
+        { src: dibujar(512, true), sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
+    poner('link[rel="manifest"]', URL.createObjectURL(new Blob([JSON.stringify(man)], { type: 'application/manifest+json' })));
+  } catch (e) { iconoHecho = ''; }
 }
 let bienvenidaAbierta = false;
 function bienvenida() {
@@ -1779,7 +1818,7 @@ function pintarPendientes(d) {
 }
 
 /* ======================= arranque ======================= */
-(function () { try { const m = JSON.parse(localStorage.getItem('cons.marca') || 'null'); if (m) { $('.brand .n').textContent = m.nombre; $('.brand .e').textContent = m.especialidad; $('.mono').textContent = m.iniciales; } } catch (e) {} })();
+(function () { try { const m = JSON.parse(localStorage.getItem('cons.marca') || 'null'); if (m) { $('.brand .n').textContent = m.nombre; $('.brand .e').textContent = m.especialidad; $('.mono').textContent = m.iniciales; iconoMarca(m); } } catch (e) {} })();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 /* versión */
 const VISTA_INICIAL = new URLSearchParams(location.search).get('v') || 'inicio';
