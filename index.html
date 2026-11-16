@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="version" content="2026.11.15.3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -236,6 +237,8 @@
     box-shadow:0 1px 0 rgba(20,35,58,.08);font-variant-numeric:tabular-nums;transition:background .08s,transform .08s;touch-action:manipulation}
   #kp .kpGrid button:active,#kp .kpGrid button.pulso{background:var(--linea);transform:scale(.97)}
   #kp .kpGrid button.fn{background:transparent;box-shadow:none;font-size:22px;color:var(--tinta2)}
+  #kp .kpGrid button.fn.pulso{background:var(--linea)}
+  #kp{touch-action:none}
   #kp .kpRapidos{display:flex;gap:8px;max-width:560px;margin:0 auto 8px;overflow-x:auto;scrollbar-width:none}
   #kp .kpRapidos::-webkit-scrollbar{display:none}
   #kp .kpRapidos button{flex:0 0 auto;border:1px solid var(--linea);background:var(--marfil);border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:600;color:var(--tinta2)}
@@ -912,6 +915,13 @@ function kpPintar() {
   i.dispatchEvent(new Event('input', { bubbles: true }));
   kpAyuda();
 }
+function kpTope(msg) {
+  const i = KP.inp; if (!i) return;
+  i.classList.remove('falta'); void i.offsetWidth; i.classList.add('falta');
+  setTimeout(() => i.classList.remove('falta'), 700);
+  const a = $('#kpAyuda'); a.textContent = msg; a.className = 'aviso';
+  if (navigator.vibrate) navigator.vibrate(30);
+}
 function kpTecla(k) {
   if (!KP.inp) return;
   let r = KP.raw;
@@ -920,8 +930,8 @@ function kpTecla(k) {
   else {
     if (KP.fresco) r = '';
     const [e, d] = r.split('.');
-    if (r.includes('.') && (d || '').length >= 2) return;
-    if (!r.includes('.') && (e || '').length >= 8) return;
+    if (r.includes('.') && (d || '').length >= 2) return kpTope('Solo dos decimales');
+    if (!r.includes('.') && (e || '').length >= 8) return kpTope('Máximo 8 cifras');
     r = r === '0' ? k : r + k;
   }
   KP.fresco = false; KP.inp.classList.remove('kpSel'); KP.raw = r; kpPintar();
@@ -948,7 +958,7 @@ function abrirTeclado(inp) {
     let delta = 0;
     if (r.bottom + 34 > libre) delta = r.bottom + 34 - libre;
     if (r.top - delta < head + 12) delta = r.top - head - 12;
-    if (Math.abs(delta) > 2) $('#app').scrollBy({ top: delta, behavior: 'smooth' });
+    if (Math.abs(delta) > 2) $('#app').scrollBy({ top: delta });
   });
 }
 function cerrarTeclado() {
@@ -960,8 +970,22 @@ function cerrarTeclado() {
 }
 (function () {
   const kp = $('#kp');
-  kp.querySelectorAll('.kpGrid button').forEach(b => {
-    b.addEventListener('pointerdown', e => { e.preventDefault(); b.classList.add('pulso'); kpTecla(b.dataset.k); setTimeout(() => b.classList.remove('pulso'), 90); });
+  /* Toques: se atienden en touchstart (lo más directo en iPhone) y cuentan aunque el dedo caiga en la orilla o entre dos teclas. */
+  const grid = kp.querySelector('.kpGrid'), teclas = [...grid.querySelectorAll('button')];
+  let ultimoToque = 0;
+  const teclaEn = (x, y) => {
+    let mejor = null, dmin = Infinity;
+    teclas.forEach(b => { const r = b.getBoundingClientRect(); const dx = Math.max(r.left - x, 0, x - r.right), dy = Math.max(r.top - y, 0, y - r.bottom), d = dx * dx + dy * dy; if (d < dmin) { dmin = d; mejor = b; } });
+    return dmin <= 24 * 24 ? mejor : null;
+  };
+  const pulsar = b => { b.classList.add('pulso'); kpTecla(b.dataset.k); setTimeout(() => b.classList.remove('pulso'), 110); };
+  grid.addEventListener('touchstart', e => {
+    e.preventDefault(); ultimoToque = Date.now();
+    for (const t of e.changedTouches) { const b = teclaEn(t.clientX, t.clientY); if (b) pulsar(b); }
+  }, { passive: false });
+  grid.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch' || Date.now() - ultimoToque < 800) return;
+    e.preventDefault(); const b = teclaEn(e.clientX, e.clientY); if (b) pulsar(b);
   });
   $('#kpOk').onclick = cerrarTeclado;
   document.addEventListener('focusin', e => { const t = e.target; if (t && t.dataset && t.dataset.kp !== undefined) abrirTeclado(t); });
@@ -1824,6 +1848,24 @@ function pintarPendientes(d) {
 /* ======================= arranque ======================= */
 (function () { try { const m = JSON.parse(localStorage.getItem('cons.marca') || 'null'); if (m) { $('.brand .n').textContent = m.nombre; $('.brand .e').textContent = m.especialidad; $('.mono').textContent = m.iniciales; iconoMarca(m); } } catch (e) {} })();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+/* Versión nueva: el iPhone deja la app abierta en memoria. Al volver a ella, si ya hay otra versión publicada,
+   se recarga sola; si estás capturando algo, solo avisa para no perder lo escrito. */
+const VERSION_APP = (document.querySelector('meta[name="version"]') || {}).content || '';
+let versionRevisada = 0;
+async function revisarVersion() {
+  if (!VERSION_APP || Date.now() - versionRevisada < 60000) return;
+  versionRevisada = Date.now();
+  try {
+    const t = await (await fetch('index.html?v=' + Date.now(), { cache: 'no-store' })).text();
+    const m = t.match(/<meta name="version" content="([^"]+)"/);
+    if (!m || m[1] === VERSION_APP) return;
+    const escribiendo = KP.inp || document.querySelector('#tx.on, #op.on, #tk.on') ||
+      [...document.querySelectorAll('#v-captura input:not([type=date])')].some(i => i.value);
+    if (!escribiendo) location.reload();
+    else toast('Hay una versión nueva de la app', () => location.reload(), false, 'Actualizar');
+  } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') revisarVersion(); });
 /* versión */
 const VISTA_INICIAL = new URLSearchParams(location.search).get('v') || 'inicio';
 cargarBoot().then(() => { if (vista === 'captura') prepCaptura(); });
