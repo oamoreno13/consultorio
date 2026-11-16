@@ -219,6 +219,8 @@
   input[data-kp]{caret-color:transparent;cursor:pointer;-webkit-user-select:none;user-select:none}
   input[data-kp].kpOn{border-color:var(--oro)}
   input.campo[data-kp].kpOn{box-shadow:0 0 0 3px var(--oroL);background:var(--blanco)}
+  input[data-kp].kpSel{background:var(--oroL);border-radius:10px}
+  body.kpAbierto main{padding-bottom:var(--kpAlto,400px)}
   #kp{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--papel2);border-top:1px solid var(--linea);
     padding:10px 10px calc(10px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .24s cubic-bezier(.2,.8,.2,1);
     box-shadow:0 -10px 30px rgba(20,35,58,.12);visibility:hidden}
@@ -913,7 +915,7 @@ function kpPintar() {
 function kpTecla(k) {
   if (!KP.inp) return;
   let r = KP.raw;
-  if (k === 'del') { r = KP.fresco ? '' : r.slice(0, -1); }
+  if (k === 'del') { r = r.slice(0, -1); }
   else if (k === '.') { if (KP.fresco) r = ''; if (!r.includes('.')) r = (r || '0') + '.'; }
   else {
     if (KP.fresco) r = '';
@@ -922,21 +924,22 @@ function kpTecla(k) {
     if (!r.includes('.') && (e || '').length >= 8) return;
     r = r === '0' ? k : r + k;
   }
-  KP.fresco = false; KP.raw = r; kpPintar();
+  KP.fresco = false; KP.inp.classList.remove('kpSel'); KP.raw = r; kpPintar();
 }
 function abrirTeclado(inp) {
   if (KP.inp === inp) return;
-  if (KP.inp) KP.inp.classList.remove('kpOn');
+  if (KP.inp) KP.inp.classList.remove('kpOn', 'kpSel');
   const act = document.activeElement;
   if (act && act !== inp && act.matches && act.matches('input,textarea')) act.blur();
   KP.inp = inp;
   const n = numDe(inp.value);
   KP.raw = n ? String(n) : ''; KP.fresco = !!n;
-  inp.classList.add('kpOn');
+  inp.classList.add('kpOn'); inp.classList.toggle('kpSel', KP.fresco);
   $('#kpLbl').textContent = kpEtiqueta(inp);
   kpRapidos(); kpAyuda();
   const kp = $('#kp');
   kp.classList.add('on'); kp.setAttribute('aria-hidden', 'false');
+  document.body.style.setProperty('--kpAlto', (kp.offsetHeight + 24) + 'px'); document.body.classList.add('kpAbierto');
   requestAnimationFrame(() => {
     if (!$('#app').contains(inp)) return;
     const alto = kp.offsetHeight, r = inp.getBoundingClientRect();
@@ -950,7 +953,8 @@ function abrirTeclado(inp) {
 }
 function cerrarTeclado() {
   const kp = $('#kp');
-  if (KP.inp) { KP.inp.classList.remove('kpOn'); if (document.activeElement === KP.inp) KP.inp.blur(); }
+  if (KP.inp) { KP.inp.classList.remove('kpOn', 'kpSel'); if (document.activeElement === KP.inp) KP.inp.blur(); }
+  document.body.classList.remove('kpAbierto');
   KP.inp = null;
   kp.classList.remove('on'); kp.setAttribute('aria-hidden', 'true');
 }
@@ -1694,7 +1698,7 @@ function pintarGasto() {
   BOOT.fijos.forEach(x => {
     const b = document.createElement('button');
     b.innerHTML = `<b>${esc(x.proveedor || x.nota || x.categoria)}</b><span>${esc(x.categoria)} · ${mx(x.ultimo)}</span>`;
-    b.onclick = () => { G.categoria = x.categoria; if (x.metodo) G.metodo = x.metodo; if (x.cfdi) G.cfdi = x.cfdi; $('#gProv').value = x.proveedor || ''; $('#gNota').value = x.nota || ''; $('#gMonto').value = fmtMonto(x.ultimo); pintarGasto(); avisoGasto(); };
+    b.onclick = () => { G.categoria = x.categoria; if (x.metodo) G.metodo = x.metodo; if (x.cfdi) G.cfdi = x.cfdi; $('#gProv').value = x.proveedor || ''; $('#gNota').value = x.nota || ''; const ya = numDe($('#gMonto').value); if (!ya) $('#gMonto').value = fmtMonto(x.ultimo); pintarGasto(); avisoGasto(); if (ya) toast('Dejé tu monto de ' + mx(ya) + ' y llené lo demás'); };
     f.appendChild(b);
   });
 }
