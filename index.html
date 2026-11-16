@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="version" content="2026.11.15.3">
+<meta name="version" content="2026.11.15.4">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -363,7 +363,7 @@
       <label class="t">Tratamiento</label><select class="campo" id="cTrat"></select>
 
       <label class="t">Monto <span id="cMontoHint"></span></label>
-      <input class="montoIn num" id="cMonto" data-kp="monto" readonly inputmode="none" placeholder="$0" autocomplete="off" aria-label="Monto del cobro">
+      <input class="montoIn num" id="cMonto" data-kp="monto" readonly inputmode="none" tabindex="-1" placeholder="$0" autocomplete="off" aria-label="Monto del cobro">
       <div class="queda" id="cQueda" hidden><span id="cQuedaTxt"></span><b id="cQuedaV"></b></div>
 
       <label class="t">¿Cómo pagó?</label><div class="chips" id="cMet"></div>
@@ -382,7 +382,7 @@
         <div id="cEspBox" hidden>
           <label class="t">Quién</label><select class="campo" id="cEsp"></select>
           <label class="t">Su parte</label>
-          <input class="campo num" id="cSuCobro" data-kp="monto" readonly inputmode="none" placeholder="$0" autocomplete="off" aria-label="Parte del especialista">
+          <input class="campo num" id="cSuCobro" data-kp="monto" readonly inputmode="none" tabindex="-1" placeholder="$0" autocomplete="off" aria-label="Parte del especialista">
           <div class="toggle"><span>Ya le pagué</span><button class="sw" id="cLePague" aria-pressed="false" aria-label="Ya le pagué"></button></div>
         </div>
       </div>
@@ -397,7 +397,7 @@
     </div>
 
     <div class="card" id="fGasto" hidden>
-      <input class="montoIn num" id="gMonto" data-kp="monto" readonly inputmode="none" placeholder="$0" autocomplete="off" aria-label="Monto del gasto">
+      <input class="montoIn num" id="gMonto" data-kp="monto" readonly inputmode="none" tabindex="-1" placeholder="$0" autocomplete="off" aria-label="Monto del gasto">
       <div id="gFijosWrap"><label class="t">Fijos · un toque y listo</label><div class="frec" id="gFijos"></div></div>
       <label class="t">Categoría</label><select class="campo" id="gCat"></select>
       <label class="t">Proveedor <span>(opcional)</span></label>
@@ -936,11 +936,19 @@ function kpTecla(k) {
   }
   KP.fresco = false; KP.inp.classList.remove('kpSel'); KP.raw = r; kpPintar();
 }
+/* Si el iPhone dejó la página recorrida (pasa al enfocar campos), la regresa: así lo que ves y donde tocas coinciden. */
+function enderezar() {
+  const a = document.activeElement, escribe = a && a.matches && a.matches('input:not([readonly]):not([inputmode=none]), textarea');
+  if (!escribe && (window.scrollY || document.documentElement.scrollTop || document.body.scrollTop)) { window.scrollTo(0, 0); document.body.scrollTop = 0; }
+}
+window.addEventListener('scroll', enderezar, { passive: true });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(enderezar, 50); });
 function abrirTeclado(inp) {
   if (KP.inp === inp) return;
   if (KP.inp) KP.inp.classList.remove('kpOn', 'kpSel');
   const act = document.activeElement;
-  if (act && act !== inp && act.matches && act.matches('input,textarea')) act.blur();
+  if (act && act.matches && act.matches('input,textarea')) act.blur();
+  enderezar();
   KP.inp = inp;
   const n = numDe(inp.value);
   KP.raw = n ? String(n) : ''; KP.fresco = !!n;
@@ -988,11 +996,23 @@ function cerrarTeclado() {
     e.preventDefault(); const b = teclaEn(e.clientX, e.clientY); if (b) pulsar(b);
   });
   $('#kpOk').onclick = cerrarTeclado;
-  document.addEventListener('focusin', e => { const t = e.target; if (t && t.dataset && t.dataset.kp !== undefined) abrirTeclado(t); });
+  /* El campo del monto nunca recibe el foco: en iPhone, enfocar un campo hace que la pantalla se recorra por dentro
+     y los toques caen fuera de donde se ven. El teclado solo sale cuando tocas el monto, nunca solo. */
+  const campoKp = t => t && t.closest ? t.closest('input[data-kp]') : null;
+  let ini = null;
+  document.addEventListener('touchstart', e => { const t = e.touches[0]; ini = campoKp(e.target) && t ? { x: t.clientX, y: t.clientY } : null; }, { passive: true, capture: true });
+  document.addEventListener('touchend', e => {
+    const c = campoKp(e.target); if (!c || !ini) return;
+    const t = e.changedTouches[0]; const movio = t && Math.hypot(t.clientX - ini.x, t.clientY - ini.y) > 10; ini = null;
+    e.preventDefault();                       // sin foco y sin clic fantasma
+    if (!movio) abrirTeclado(c);
+  }, { passive: false, capture: true });
+  document.addEventListener('mousedown', e => { if (campoKp(e.target)) e.preventDefault(); }, true);
+  document.addEventListener('focusin', e => { const c = campoKp(e.target); if (c) { c.blur(); enderezar(); } });
   document.addEventListener('click', e => {
-    const t = e.target;
+    const t = e.target, c = campoKp(t);
+    if (c) { e.preventDefault(); return abrirTeclado(c); }
     if (!KP.inp || kp.contains(t)) return;
-    if (t.closest && t.closest('input[data-kp]')) return abrirTeclado(t.closest('input[data-kp]'));
     cerrarTeclado();
   }, true);
   document.addEventListener('keydown', e => {
@@ -1108,9 +1128,9 @@ const pctDe = cons => (BOOT && BOOT.pctConsultorio && BOOT.pctConsultorio[clave(
 function editarPct(cons) {
   const m = modal(`<h4>¿Qué % se queda ${esc(cons)}?</h4>
     <p class="hint" style="margin:0 0 10px">De cada cobro en este consultorio. Pon 0 si no se queda nada o si se lo pagas aparte como renta.</p>
-    <input class="campo num" id="pctIn" data-kp="pct" readonly inputmode="none" value="${pctDe(cons) ? pctDe(cons) + '%' : ''}" placeholder="0%">
+    <input class="campo num" id="pctIn" data-kp="pct" readonly inputmode="none" tabindex="-1" value="${pctDe(cons) ? pctDe(cons) + '%' : ''}" placeholder="0%">
     <button class="btn" id="pctOk">Guardar</button><button class="btn sec" id="pctNo">Cancelar</button>`);
-  const inp = m.querySelector('#pctIn'); setTimeout(() => inp.focus(), 60);
+  const inp = m.querySelector('#pctIn'); setTimeout(() => abrirTeclado(inp), 60);
   m.querySelector('#pctNo').onclick = cerrarModal;
   m.querySelector('#pctOk').onclick = async () => {
     const v = numDe(inp.value);
@@ -1265,9 +1285,9 @@ function elegirRegimen(v) {
   }
   const m = modal(`<h4>¿Cuánto apartas para impuestos?</h4>
     <p class="hint" style="margin:0 0 10px">El % de lo cobrado que te sugiere tu contador. Si no sabes, pregúntale: depende de tu régimen y tus deducciones.</p>
-    <input class="campo num" id="satPct" data-kp="pct" readonly inputmode="none" placeholder="0%">
+    <input class="campo num" id="satPct" data-kp="pct" readonly inputmode="none" tabindex="-1" placeholder="0%">
     <button class="btn" id="satOk">Guardar</button><button class="btn sec" id="satNo">Cancelar</button>`);
-  setTimeout(() => m.querySelector('#satPct').focus(), 60);
+  setTimeout(() => abrirTeclado(m.querySelector('#satPct')), 60);
   m.querySelector('#satNo').onclick = cerrarModal;
   m.querySelector('#satOk').onclick = () => { const p = numDe(m.querySelector('#satPct').value); if (KP.inp) cerrarTeclado(); cerrarModal(); guardar({ regimen: 'Otro', pct: p }); };
 }
